@@ -6,7 +6,8 @@ function scene02() {
 			poses = null;
 		}
 		faceapiStandby = false;
-		if (!faceapiLoaded) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
+		faceapi.detect(gotFaces);
+		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
 		resetRecVariables();
 		chooseScene('#scene-02');
 		canvas.parent('#canvas-02');
@@ -142,13 +143,12 @@ function sharperBody(pose) {
 	// Will add points around the skeleton to increase the surface area
 	let newArr = [];
 
-
 	pose.forEach((p, i) => {
 		switch (p.part) {
 			case 'nose':
 				newArr = newArr.concat(
 					star(
-						p.position.x, 
+						p.position.x,
 						p.position.y,
 						par.innerStar, // radius for inner circle
 						par.outerStar, // radius for external circle
@@ -245,14 +245,15 @@ function softerBody(pose) {
 			case 'nose':
 				newArr = newArr.concat(
 					expandBlob(
-						p, 
+						p,
 						20, // angle increments
-						10, // minimum radius 
+						10, // minimum radius
 						200, // maxium radius
 						2, // x offset in noise space
 						4, // y offset in noise space
 						0.05, // phase shift
-						i)
+						i
+					)
 				);
 				break;
 			case 'leftEar':
@@ -300,19 +301,25 @@ function softerBody(pose) {
 	let middle1 = p5.Vector.lerp(l1, r1, 0.5);
 	let middle2 = p5.Vector.lerp(l2, r2, 0.5);
 
-	newArr = newArr.concat(
-		expandBlob(leftSide, 5, 1, 100, 2, 4, 0.001, -1)
-	);
-	newArr = newArr.concat(
-		expandBlob(rightSide, 5, 1, 100, 2, 4, 0.001, -2)
-	);
+	newArr = newArr.concat(expandBlob(leftSide, 5, 1, 100, 2, 4, 0.001, -1));
+	newArr = newArr.concat(expandBlob(rightSide, 5, 1, 100, 2, 4, 0.001, -2));
 	newArr = newArr.concat(expandBlob(middle1, 5, 1, 100, 2, 4, 0.001, -3));
 	newArr = newArr.concat(expandBlob(middle2, 5, 1, 100, 2, 4, 0.001, -4));
 
 	return newArr;
 }
 
-function expandBlob(point, angles, minR, maxR, maxX, maxY, maxOff, i, effect=1) {
+function expandBlob(
+	point,
+	angles,
+	minR,
+	maxR,
+	maxX,
+	maxY,
+	maxOff,
+	i,
+	effect = 1
+) {
 	let x, y;
 	let px, py;
 	let newArr = [];

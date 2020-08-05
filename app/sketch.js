@@ -4,7 +4,7 @@ let status;
 let sample;
 let webcamPreview;
 let button;
-let videoSample = 'assets/01.mp4'
+let videoSample = 'assets/01.mp4';
 
 let sceneReady = false;
 
@@ -60,6 +60,7 @@ let faceapi;
 let detections = [];
 let faceapiLoaded = false;
 let faceapiStandby = true;
+let isFaceApiReady = false;
 
 const faceOptions = {
 	withLandmarks: false,
@@ -155,9 +156,10 @@ function setup() {
 
 	// start getting faceapi ready
 
-	startWebcam(false, 467, 350);
+	startWebcam();
 	// getNewVideo(videoSample)
-	if (!faceapiLoaded) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
+
+	if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
 	gotoScene();
 }
 
@@ -192,11 +194,8 @@ function startMic() {
 	mic.start();
 }
 
-function startWebcam(autoSize, sw, sh) {
+function startWebcam() {
 	sample = createCapture(VIDEO, webcamReady);
-	if (!autoSize) {
-		sample.size(sw, sh);
-	}
 	// TODO - too ugly
 	sample.parent('#webcam-monitor-0' + par.scene);
 }
@@ -214,6 +213,7 @@ function modelReady() {
 }
 
 function faceReady() {
+	isFaceApiReady = true;
 	faceapi.detect(gotFaces);
 }
 
@@ -476,7 +476,6 @@ function updateAnchors() {
 	});
 }
 
-
 // Hides everything and then shows the desired scene
 function chooseScene(sceneId) {
 	if (par.debug) console.log('Going to ', sceneId);
@@ -533,6 +532,5 @@ function remapPosenetToArray(point, rWidth, rHeight, cWidth, cHeight, padding) {
 	// console.log('remapPosenetToArray',point, rWidth, rHeight, cWidth, cHeight, padding)
 	let newX = map(point.position.x, 0, rWidth, padding, cWidth - padding);
 	let newY = map(point.position.y, 0, rHeight, padding, cHeight - padding);
-	return [newX,newY]
+	return [newX, newY];
 }
-
