@@ -28,7 +28,7 @@ function scene03() {
 	this.draw = function () {
 		ampl.setInput(mic);
 
-		background(255);
+		background('#f9f9f9');
 
 		if (par.debug) graphVoice(ampl.getLevel());
 		mirror(); // Mirror canvas to match mirrored video

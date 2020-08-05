@@ -22,7 +22,7 @@ function scene01() {
 	// --1draw
 	this.draw = function () {
 		vf.background(0);
-		background(255);
+		background('#f9f9f9');
 		translate(width, false);
 		scale(-1, 1);
 
@@ -83,8 +83,9 @@ function playShape(history) {
 
 // Draws an outline based on posenet keypoints
 function drawShape(points) {
+	// console.log('drawShape',points)
 	retargetAnchorsFromPose(points);
-	expanded = bodyNet(anchors, par.happy);
+	expanded = bodyNet(anchors);
 	hullSet = hull(expanded, 150);
 
 	// Looks better than endShape(CLOSE)
@@ -93,14 +94,10 @@ function drawShape(points) {
 
 	let padded = [];
 
-	// function remap(point, range, dim, padding) {
-	// 	return map(point, 0, range, padding, dim - padding);
-	// }
-
 	hullSet.forEach(p => {
 		padded.push([
-			remap(p[0], sample.width, width, par.padding),
-			remap(p[1], sample.height, height, par.padding),
+			remap(p[0], par.sampleWidth, width, par.padding),
+			remap(p[1], par.sampleHeight, height, par.padding),
 		]);
 	});
 
@@ -258,6 +255,29 @@ function previewSkeleton(pose) {
 				vf.ellipse(partB.position.x, partB.position.y, 5);
 				vf.pop();
 			}
+		}
+	}
+}
+
+// Shows a 3...2..1... animation on the second canvas
+function playPreroll() {
+	if (preroll) {
+		let counter = floor(map(prerollCounter, 0, par.mississippi, 4, 0));
+		if (counter > 0) {
+			vf.push();
+			vf.translate(vf.width, 0);
+			vf.scale(-1, 1);
+			vf.noStroke();
+			vf.fill(0, 200);
+			vf.rect(0, 0, vf.width, vf.height);
+			vf.fill(255);
+			vf.textSize(180);
+			vf.textAlign(CENTER, CENTER);
+			vf.text(counter, vf.width / 2, vf.height / 2);
+			vf.pop();
+			prerollCounter++;
+		} else {
+			startRecording();
 		}
 	}
 }

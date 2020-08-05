@@ -22,7 +22,7 @@ function scene02() {
 
 	// --draw
 	this.draw = function () {
-		background(255);
+		background('#f9f9f9');
 		mirror(); // Mirror canvas to match mirrored video
 		// The preview is 500x470 but the cam feed is 627x470
 		if (sample) vf.image(sample, -50, 0);
@@ -31,11 +31,14 @@ function scene02() {
 			if (detections[0] && par.debug) graphExpressions();
 			if (!full && history1[0] && detections[0]) {
 				// Play the recording from the previous step with expressions applied
-				// Record into 
+				// Record into
 				playLiveShape2(history1);
 			} else if (full && history2[0]) {
 				// Play the recording	from this step (using the logic from the next step)
-				playHistoryShape2(history1, analyzeExpressionHistory(expressionAggregate));
+				playHistoryShape2(
+					history1,
+					analyzeExpressionHistory(expressionAggregate)
+				);
 				// playShape3(history2);
 			} else if (par.useSamplePose) {
 				// Play a prerecorded pose
@@ -108,12 +111,11 @@ function playHistoryShape2(history, shapeType) {
 }
 
 function drawHistoryShape2(history, shapeType) {
-
 	retargetAnchorsFromPose(history);
 	if (shapeType === 'softer') {
-		expanded = softerBody(anchors, 1.1);
+		expanded = softerBody(anchors);
 	} else {
-		expanded = sharperBody(anchors, 1.1);
+		expanded = sharperBody(anchors);
 	}
 	hullSet = hull(expanded, par.roundness);
 
@@ -134,26 +136,23 @@ function drawHistoryShape2(history, shapeType) {
 	pop();
 }
 
-function sharperBody(pose, fExp, scaleMulti = 1) {
+function sharperBody(pose) {
 	// [{pos,part}...]
 	// Needs an array of objects that have postion.x,position.y,part
 	// Will add points around the skeleton to increase the surface area
 	let newArr = [];
 
-	// We'll use these later for the torso
-	let l1, l2, r1, r2;
 
 	pose.forEach((p, i) => {
 		switch (p.part) {
 			case 'nose':
-				// function expandBlob(point, angles, minr, maxr, maxx,maxy, maxoff, texp) {
 				newArr = newArr.concat(
 					star(
-						p.position.x,
+						p.position.x, 
 						p.position.y,
-							par.innerStar*scaleMulti,
-							par.outerStar*scaleMulti,
-						par.starPoints
+						par.innerStar, // radius for inner circle
+						par.outerStar, // radius for external circle
+						par.starPoints // number of points
 					)
 				);
 				break;
@@ -179,8 +178,8 @@ function sharperBody(pose, fExp, scaleMulti = 1) {
 						star(
 							p.position.x,
 							p.position.y,
-							par.innerStar*scaleMulti,
-							par.outerStar*scaleMulti,
+							par.innerStar,
+							par.outerStar,
 							par.starPoints
 						)
 					);
@@ -214,7 +213,7 @@ function star(x, y, radius1, radius2, npoints) {
 	return newArr;
 }
 
-function softerBody(pose, fExp, scaleMulti=1) {
+function softerBody(pose) {
 	// [{pos,part}...]
 	// Needs an array of objects that have position.x,position.y,part
 	// Will add points around the skeleton to increase the surface area
@@ -223,15 +222,42 @@ function softerBody(pose, fExp, scaleMulti=1) {
 	// We'll use these later for the torso
 	let l1, l2, r1, r2;
 
+	/*  
+
+	expandBlob(point, angles, minR, maxR, maxX, maxY, maxOff, i, effect)
+
+	First argument is the point to expand. 
+	Second argument is the distance between
+	each point in angles (for example, an angle distance of 1 will add 360
+	points). 
+	Next two arguments are minimum and maxium radius. 
+	Fifth and sixth arguments control how fast the shape will oscilate within 
+	the min/max radius values.
+	Seventh argument is the maximum phase offset (higher values make the shape 
+	appear to rotate.)
+	Eighth argument is an iterator used for the noise function.
+	Last argument is a modifier applied to every point for adding jitter.
+
+
+	*/
 	pose.forEach((p, i) => {
 		switch (p.part) {
 			case 'nose':
-				// function expandBlob(point, angles, minr, maxr, maxx,maxy, maxoff, texp) {
-				newArr = newArr.concat(expandBlob(p, 1, 1, 200*scaleMulti, 2, 4, 0.05, i, fExp));
+				newArr = newArr.concat(
+					expandBlob(
+						p, 
+						20, // angle increments
+						10, // minimum radius 
+						200, // maxium radius
+						2, // x offset in noise space
+						4, // y offset in noise space
+						0.05, // phase shift
+						i)
+				);
 				break;
 			case 'leftEar':
 			case 'rightEar':
-				newArr = newArr.concat(expandBlob(p, 5, 5, 50, 2, 4, 0.01, i, fExp));
+				newArr = newArr.concat(expandBlob(p, 5, 5, 50, 2, 4, 0.01, i));
 				break;
 			case 'leftEye':
 			case 'rightEye':
@@ -240,11 +266,11 @@ function softerBody(pose, fExp, scaleMulti=1) {
 			// Arms
 			case 'leftShoulder':
 				l1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 5, 5, 150, 2, 4, 0.01, i, fExp));
+				newArr = newArr.concat(expandBlob(p, 5, 5, 150, 2, 4, 0.01, i));
 				break;
 			case 'rightShoulder':
 				r1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 5, 5, 150, 2, 4, -0.01, i, fExp));
+				newArr = newArr.concat(expandBlob(p, 5, 5, 150, 2, 4, -0.01, i));
 				break;
 			// case 'leftElbow':
 			// case 'rightElbow':
@@ -252,18 +278,18 @@ function softerBody(pose, fExp, scaleMulti=1) {
 			// case 'rightWrist':
 			case 'leftHip':
 				l2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 10, 5, 50, 2, 4, 0.02, i, fExp));
+				newArr = newArr.concat(expandBlob(p, 10, 5, 50, 2, 4, 0.02, i));
 				break;
 			case 'rightHip':
 				r2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 10, 5, 50, 2, 4, -0.02, i, fExp));
+				newArr = newArr.concat(expandBlob(p, 10, 5, 50, 2, 4, -0.02, i));
 				break;
 			// case 'leftKnee':
 			// case 'rightKnee':
 			// case 'leftAnkle':
 			// case 'rightAnkle':
 			default:
-				newArr = newArr.concat(expandBlob(p, 5, 5, 100, 2, 4, 0.01, i, fExp));
+				newArr = newArr.concat(expandBlob(p, 5, 5, 100, 2, 4, 0.01, i));
 				break;
 		}
 	});
@@ -275,18 +301,18 @@ function softerBody(pose, fExp, scaleMulti=1) {
 	let middle2 = p5.Vector.lerp(l2, r2, 0.5);
 
 	newArr = newArr.concat(
-		expandBlob(leftSide, 5, 1, 100, 2, 4, 0.001, -1, fExp)
+		expandBlob(leftSide, 5, 1, 100, 2, 4, 0.001, -1)
 	);
 	newArr = newArr.concat(
-		expandBlob(rightSide, 5, 1, 100, 2, 4, 0.001, -2, fExp)
+		expandBlob(rightSide, 5, 1, 100, 2, 4, 0.001, -2)
 	);
-	newArr = newArr.concat(expandBlob(middle1, 5, 1, 100, 2, 4, 0.001, -3, fExp));
-	newArr = newArr.concat(expandBlob(middle2, 5, 1, 100, 2, 4, 0.001, -4, fExp));
+	newArr = newArr.concat(expandBlob(middle1, 5, 1, 100, 2, 4, 0.001, -3));
+	newArr = newArr.concat(expandBlob(middle2, 5, 1, 100, 2, 4, 0.001, -4));
 
 	return newArr;
 }
 
-function expandBlob(point, angles, minR, maxR, maxX, maxY, maxOff, i, fExp) {
+function expandBlob(point, angles, minR, maxR, maxX, maxY, maxOff, i, effect=1) {
 	let x, y;
 	let px, py;
 	let newArr = [];
@@ -300,8 +326,6 @@ function expandBlob(point, angles, minR, maxR, maxX, maxY, maxOff, i, fExp) {
 		px = point[0];
 		py = point[1];
 	}
-	if (!fExp) fExp = par.emotionalScale;
-	let effect = fExp;
 	for (let a = 0; a < 360; a += angles) {
 		let xoff = map(cos(a + phase), -1, 1, 0, maxX * effect) + i;
 		let yoff = map(sin(a + phase), -1, 1, 0, maxY * effect) + i;

@@ -327,7 +327,7 @@ function retargetAnchorsFromPose(targets) {
 }
 
 function retargetAnchorsFromPoints(targets) {
-	console.log('retargetAnchorsFromPoints',targets)
+	// console.log('retargetAnchorsFromPoints',targets)
 	anchors.forEach((a, i) => {
 		if (targets[i]) {
 			let v = createVector(targets[i][0], targets[i][1]);
@@ -476,29 +476,6 @@ function updateAnchors() {
 	});
 }
 
-// Shows a 3...2..1... animation on the second canvas
-function playPreroll() {
-	if (preroll) {
-		let counter = floor(map(prerollCounter, 0, par.mississippi, 4, 0));
-		if (counter > 0) {
-			vf.push();
-			vf.translate(vf.width, 0);
-			vf.scale(-1, 1);
-			vf.noStroke();
-			vf.background(0);
-			vf.fill(0, 200);
-			vf.rect(0, 0, vf.width, vf.height);
-			vf.fill(255);
-			vf.textSize(180);
-			vf.textAlign(CENTER, CENTER);
-			vf.text(counter, vf.width / 2, vf.height / 2);
-			vf.pop();
-			prerollCounter++;
-		} else {
-			startRecording();
-		}
-	}
-}
 
 // Hides everything and then shows the desired scene
 function chooseScene(sceneId) {
@@ -538,7 +515,7 @@ function getNewVideo(loc) {
 }
 
 function videoReady() {
-	console.log('Video Ready');
+	if (par.debug) console.log('Video Ready');
 	posenet = ml5.poseNet(sample, options, modelReady);
 	posenet.on('pose', function (results) {
 		// console.log('Poses Ready')
@@ -547,6 +524,7 @@ function videoReady() {
 }
 
 function remap(point, range, dim, padding) {
+	// console.log('remap',point, range, dim, padding)
 	return map(point, 0, range, padding, dim - padding);
 }
 

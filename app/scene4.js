@@ -22,7 +22,7 @@ function scene04() {
 
 	// --4draw
 	this.draw = function () {
-		background(255);
+		background('#f9f9f9');
 		mirror();
 		playHistoryShape3(voiceHistory);
 		if (par.frameRate) fps();

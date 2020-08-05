@@ -80,7 +80,7 @@ canvas {
 }
 .directions {
 	background-color: var(--dark);
-	color: var(--primary)
+	color: var(--secondary)
 }
 /* ==Layout  **************************************************** */
 /* ************************************************************** */
@@ -118,9 +118,6 @@ main .controls {
 	align-self: flex-end;
 }
 
-main .webcam-monitor-container {
-	/* border-radius: 10px; */
-}
 
 .scene .sidebar {
 	display: flex;
@@ -139,7 +136,7 @@ main .webcam-monitor-container {
 .scene .abstract {
 	height: 100%;
 	border-radius: 10px;
-	background: white;
+	background-color: var(--primary);
 }
 
 .fullscreen {
@@ -225,24 +222,39 @@ button.counter {
 	/* align-self: stretch; */
 	height: 100%;
 }
+#scene-03 .webcam-monitor-container p {
+margin-bottom: 1em;
 
+}
+
+#webcam-monitor-03 {display: none;}
 #scene-04 .controls {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-items: center;
+	width: 100%;
 }
-#scene-04 button {margin-bottom: 1rem;}
 
-/* ==P5 Helpers ************************************************* */
+#scene-04 button {
+	margin-bottom: 1rem;
+	width: 100%;
+}
+
+.light button.secondary {
+	background-color: var(--primary);
+	color: var(--dark);
+	border-color: var(--primary);
+}
+.light button.secondary:hover {
+	border-color: var(--black)
+}
+
+/* ==Helpers ************************************************* */
 /* ************************************************************** */
 
 #status {
 	color: var(--secondary);
 	margin: 0.25em 0 1.25em;
-}
-
-canvas {
 }
 
 /* ==Controls  ************************************************** */
@@ -303,6 +315,7 @@ button.disabled:hover,
 
 button.rec:hover,
 .btn.rec:hover {
+	
 }
 .hidden {
 	display: none !important;
@@ -321,7 +334,7 @@ a.text-muted {
 }
 
 strong {
-	color: white;
+	color: var(--primary);
 	font-weight: bold;
 	font-style: italic;
 }
@@ -398,7 +411,7 @@ body > #step-0 {
 }
 
 #step-0 .abstract-preview {
-	background-color: white;
+	background-color: var(--primary);
 	width: 380px;
 	height: 380px;
 }
