@@ -327,7 +327,7 @@ function retargetAnchorsFromPose(targets) {
 }
 
 function retargetAnchorsFromPoints(targets) {
-	// TODO: mark anchors, text or color or something
+	console.log('retargetAnchorsFromPoints',targets)
 	anchors.forEach((a, i) => {
 		if (targets[i]) {
 			let v = createVector(targets[i][0], targets[i][1]);

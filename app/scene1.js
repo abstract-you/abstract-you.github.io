@@ -78,7 +78,7 @@ function scene01() {
 function playShape(history) {
 	// Use the current frame counter as an iterator for looping through the recorded array
 	let cp = frameCount % history.length;
-	drawShape(history);
+	drawShape(history[cp]);
 }
 
 // Draws an outline based on posenet keypoints
@@ -213,7 +213,7 @@ function expandEllipseXY(px, py, minr, maxr, angles) {
 }
 
 function expandEllipse(point, minr = 50, maxr = 50, inc = 60) {
-	console.log('expandEllipse ', point, minr, maxr, inc);
+	// console.log('expandEllipse ', point, minr, maxr, inc);
 	let x, y;
 	let px, py;
 	let newArr = [];

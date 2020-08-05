@@ -46,9 +46,9 @@ class Paramaterize {
 		this.manualRadiusRatio = 1;
 		this.noseExpandRatio = 3.5;
 		this.noiseLevel = 0.001;
-		this.showAnchors = true;
-		this.showPose = true;
-		this.showHull = true;
+		this.showAnchors = false;
+		this.showPose = false;
+		this.showHull = false;
 		this.fillShape = false;
 		this.showCurves = true;
 		this.audioResolution = 32; // bins
