@@ -156,6 +156,7 @@ function setup() {
 	// start getting faceapi ready
 
 	startWebcam(false, 467, 350);
+	// getNewVideo(videoSample)
 	if (!faceapiLoaded) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
 	gotoScene();
 }

@@ -85,7 +85,7 @@ function playShape(history) {
 function drawShape(points) {
 	retargetAnchorsFromPose(points);
 	expanded = bodyNet(anchors, par.happy);
-	hullSet = hull(expanded, par.roundness);
+	hullSet = hull(expanded, 150);
 
 	// Looks better than endShape(CLOSE)
 	hullSet.push(hullSet[1]);
@@ -98,12 +98,10 @@ function drawShape(points) {
 	// }
 
 	hullSet.forEach(p => {
-		padded.push(
-			[
-				remap(p[0], sample.width, width, par.padding),
-				remap(p[1], sample.height, height, par.padding)
-			]
-		);
+		padded.push([
+			remap(p[0], sample.width, width, par.padding),
+			remap(p[1], sample.height, height, par.padding),
+		]);
 	});
 
 	push();
@@ -125,52 +123,62 @@ function bodyNet(pose) {
 	// We'll use these later for the torso
 	let l1, l2, r1, r2;
 
+	// expandEllipse(point, 50, 50, 52)
+	//
+	// The first argument is the point to expand
+	// The next two arguments are the minimum and maximum radius for the circle
+	// (by default both are 50 so the size is fixed. If there's a range, it will
+	// slowly move between the two extremes at random)
+	// The last argument is the distance between each point in angles
+	// (for example, an angle distance of 1 will add 360 points)
+
 	pose.forEach((p, i) => {
-		// cl(p)
 		switch (p.part) {
 			case 'nose':
-				newArr = newArr.concat(expandEllipse(p, 120, 120, 30));
+				newArr = newArr.concat(expandEllipse(p, 80,95,20));
 				break;
 			case 'leftEar':
 			case 'rightEar':
-				newArr = newArr.concat(expandEllipse(p, 50, 50));
+				newArr = newArr.concat(expandEllipse(p, 20,35));
 				break;
 			case 'leftEye':
 			case 'rightEye':
-				newArr.push([p.position.x, p.position.y]); // no expansion
 				break;
-			// Arms
 			case 'leftShoulder':
 				l1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandEllipse(p, 50, 50, 54));
+				newArr = newArr.concat(expandEllipse(p, 20,35));
 				break;
 			case 'rightShoulder':
 				r1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandEllipse(p, 50, 50, 54));
+				newArr = newArr.concat(expandEllipse(p));
 				break;
-			// case 'leftElbow':
-			// case 'rightElbow':
-			// case 'leftWrist':
-			// case 'rightWrist':
+			case 'leftElbow':
+			case 'rightElbow':
+				newArr = newArr.concat(expandEllipse(p, 70, 96));
+				break;
+			case 'leftWrist':
+			case 'rightWrist':
 			case 'leftHip':
 				l2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandEllipse(p, 50, 50, 54));
+				newArr = newArr.concat(expandEllipse(p));
 				break;
 			case 'rightHip':
 				r2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandEllipse(p, 50, 50, 54));
+				newArr = newArr.concat(expandEllipse(p, 70, 96, 20));
 				break;
-			// case 'leftKnee':
-			// case 'rightKnee':
-			// case 'leftAnkle':
-			// case 'rightAnkle':
+			case 'leftKnee':
+			case 'rightKnee':
+				newArr = newArr.concat(expandEllipse(p, 70, 96, 20));
+				break;
+			case 'leftAnkle':
+			case 'rightAnkle':
 			default:
-				newArr.push([p.position.x, p.position.y]); // no expansion
+				newArr = newArr.concat(expandEllipse(p));
 				break;
 		}
 	});
 
-	// Torso
+	// fill in the torso area so the convex hull algorithm has more to work with
 	let leftSide = p5.Vector.lerp(l1, l2, 0.5);
 	let rightSide = p5.Vector.lerp(r1, r2, 0.5);
 	let middle1 = p5.Vector.lerp(l1, r1, 0.5);
@@ -204,8 +212,8 @@ function expandEllipseXY(px, py, minr, maxr, angles) {
 	return newArr;
 }
 
-function expandEllipse(point, minr, maxr, angles) {
-	if (!angles) angles = 30;
+function expandEllipse(point, minr = 50, maxr = 50, inc = 60) {
+	console.log('expandEllipse ', point, minr, maxr, inc);
 	let x, y;
 	let px, py;
 	let newArr = [];
@@ -216,8 +224,9 @@ function expandEllipse(point, minr, maxr, angles) {
 		px = point[0];
 		py = point[1];
 	}
-	for (let a = 0; a < 360; a += angles) {
-		let r = random(minr, maxr);
+	for (let a = 0; a < 360; a += inc) {
+		let offset = (frameCount % 10) / 1000;
+		let r = map(noise(offset), 0, 1, minr, maxr);
 		x = px + r * cos(a);
 		y = py + r * sin(a);
 		newArr.push([x, y]);

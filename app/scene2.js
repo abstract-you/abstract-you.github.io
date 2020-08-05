@@ -63,9 +63,9 @@ function drawLiveShape2(points) {
 	retargetAnchorsFromPose(points);
 
 	if (shapeType === 'softer') {
-		expanded = faceBodyNet(anchors);
+		expanded = softerBody(anchors);
 	} else {
-		expanded = starBodyNet(anchors);
+		expanded = sharperBody(anchors);
 	}
 
 	// Show expansions for reference
@@ -111,9 +111,9 @@ function drawHistoryShape2(history, shapeType) {
 
 	retargetAnchorsFromPose(history);
 	if (shapeType === 'softer') {
-		expanded = faceBodyNet(anchors, 1.1);
+		expanded = softerBody(anchors, 1.1);
 	} else {
-		expanded = starBodyNet(anchors, 1.1);
+		expanded = sharperBody(anchors, 1.1);
 	}
 	hullSet = hull(expanded, par.roundness);
 
@@ -134,7 +134,7 @@ function drawHistoryShape2(history, shapeType) {
 	pop();
 }
 
-function starBodyNet(pose, fExp, scaleMulti = 1) {
+function sharperBody(pose, fExp, scaleMulti = 1) {
 	// [{pos,part}...]
 	// Needs an array of objects that have postion.x,position.y,part
 	// Will add points around the skeleton to increase the surface area
@@ -214,7 +214,7 @@ function star(x, y, radius1, radius2, npoints) {
 	return newArr;
 }
 
-function faceBodyNet(pose, fExp, scaleMulti=1) {
+function softerBody(pose, fExp, scaleMulti=1) {
 	// [{pos,part}...]
 	// Needs an array of objects that have position.x,position.y,part
 	// Will add points around the skeleton to increase the surface area
@@ -393,11 +393,11 @@ function prepareShape(history, shapeType) {
 	let newArr = [];
 	if (shapeType === 'softer') {
 		history.forEach(p => {
-			newArr.push(faceBodyNet(p));
+			newArr.push(softerBody(p));
 		});
 	} else {
 		history.forEach(p => {
-			newArr.push(starBodyNet(p));
+			newArr.push(sharperBody(p));
 		});
 	}
 	return newArr;

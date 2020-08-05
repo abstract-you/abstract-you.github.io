@@ -17,7 +17,7 @@ class Paramaterize {
 		this.frameRate = true;
 		this.phaseMultiplier = 0.1;
 		this.emotionalIntensity = 10;
-		this.minR = 44; 
+		this.minR = 44;
 		this.maxR = 66; 
 		this.noiseMax = 1; 
 		this.xNoiseMax = 1; 
@@ -37,6 +37,7 @@ class Paramaterize {
 		this.topSpeed = 10;
 		this.maxAcc = 4;
 		this.radius = 50;
+		this.angles = 20;
 		this.noseYOffset = 55;
 		this.earRadius = 35;
 		this.wristRadius = 55;
@@ -82,4 +83,5 @@ gui.add(par, 'voiceScaleModifier');
 gui.add(par, 'showPose');
 gui.add(par, 'showAnchors');
 gui.add(par, 'padding');
+gui.add(par, 'angles');
 gui.close()
