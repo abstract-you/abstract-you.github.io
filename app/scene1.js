@@ -14,6 +14,7 @@ function scene01() {
 		button.mousePressed(() => {
 			startPreroll();
 		});
+		if (par.debug) getNewVideo('assets/01.mp4')
 	};
 
 	this.setup = function () {};

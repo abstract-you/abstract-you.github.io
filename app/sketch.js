@@ -4,6 +4,7 @@ let status;
 let sample;
 let webcamPreview;
 let button;
+let videoSample;
 
 let sceneReady = false;
 
@@ -512,3 +513,19 @@ function resetRecVariables() {
 	phase = 0.0;
 }
 
+function getNewVideo(loc) {
+	sample = createVideo(loc, videoReady);
+	sample.volume(0);
+	sample.loop();
+		sample.size(627, 470);
+	sample.hide();
+}
+
+function videoReady() {
+	console.log('Video Ready');
+	posenet = ml5.poseNet(sample, options, modelReady);
+	posenet.on('pose', function (results) {
+		// console.log('Poses Ready')
+		poses = results;
+	});
+}

@@ -1,6 +1,6 @@
 class Paramaterize {
 	constructor() {
-		this.scene = 0;
+		this.scene = 1;
 		this.voiceScaleModifier = 1;
 		this.framesToRecord = 900; // 900 frames is about 15 seconds
 		this.shapeStrokeWeight = 2;
@@ -13,7 +13,7 @@ class Paramaterize {
 		this.starPoints = 9;
 		this.noseOnly = false;
 		this.useSamplePose = true;
-		this.debug = true;
+		this.debug = false;
 		this.frameRate = true;
 		this.phaseMultiplier = 0.1;
 		this.emotionalIntensity = 10;
