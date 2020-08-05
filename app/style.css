@@ -1,0 +1,420 @@
+/* 
+Space Mono is a fixed-width font with four weights: 400, 400 Italic, 700, 700 Italic
+height: 100%;
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+:root {
+	--black: #000000;
+	--dark: #101010;
+	--primary: #f9f9f9;
+	--tertiary: #393939;
+	--light: #e0e0e0;
+	--secondary: #a9a9a9;
+	--recording: #ff5151;
+}
+
+/* ==Basics 	*************************************************** */
+/* ************************************************************** */
+
+body {
+	background-color: var(--black);
+	color: var(--secondary);
+	font-family: 'Space Mono', monospace;
+	margin: 0;
+	padding: 0;
+	font-size: 18px;
+	line-height: 27px;
+	letter-spacing: 1.5px;
+}
+
+body.light {
+	background-color: var(--primary);
+	color: var(--dark)
+}
+
+body,button {
+
+	font-family: 'Space Mono', monospace;
+}
+
+a,
+a:visited {
+	color: inherit;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button {
+	font-size: 16px;
+	line-height: 27px;
+	letter-spacing: 4px;
+}
+
+main .title {
+	font-size: 13px;
+}
+main p {
+	margin: 0;
+}
+
+canvas {
+	border-radius: 10px;
+}
+.scene .sidebar .title {
+	font-weight: bold;
+}
+.light .directions {
+	background-color: var(--primary);
+	color: var(--dark)
+}
+.directions {
+	background-color: var(--dark);
+	color: var(--primary)
+}
+/* ==Layout  **************************************************** */
+/* ************************************************************** */
+
+body,
+main {
+	height: 100vh;
+}
+
+main {
+	display: grid;
+	place-items: center;
+}
+
+main .scene {
+	margin: 2rem;
+}
+
+main .title {
+	margin-bottom: 40px;
+	text-transform: uppercase;
+}
+
+main .directions {
+	padding: 2rem;
+	border-radius: 10px;
+	margin-bottom: 40px;
+}
+main .directions p {
+	margin-bottom: 1rem;
+}
+
+main .controls {
+	margin-top: 40px;
+	align-self: flex-end;
+}
+
+main .webcam-monitor-container {
+	/* border-radius: 10px; */
+}
+
+.scene .sidebar {
+	display: flex;
+	flex-direction: column;
+}
+
+.scene .sidebar .title {
+	display: flex;
+	justify-content: space-between;
+}
+
+.scene .sidebar .controls {
+	display: flex;
+	align-self: flex-end;
+}
+.scene .abstract {
+	height: 100%;
+	border-radius: 10px;
+	background: white;
+}
+
+.fullscreen {
+	display: grid;
+	grid-template-columns: 500px 820px;
+	margin-top: 2vh;
+	gap: 40px;
+}
+
+.row {
+	margin: 0;
+	padding: 0;
+}
+button.rec-button {
+	width: 300px;
+	margin-right: 40px;
+}
+button.counter {
+	width: 164px;
+}
+
+/* ==scenes  *************************************************** */
+/* ************************************************************** */
+
+#scene-00 {
+	display: grid;
+	grid-template-columns: 350px 200px 350px;
+	grid-template-areas:
+		'sidebar . abstract'
+		'controls controls controls';
+}
+
+.webcam-monitor-container video {
+	border-radius: 10px;
+	transform: scaleX(-1);
+	object-fit: cover;
+}
+.scene .webcam-monitor-container {
+	height: 100%;
+}
+.scene .webcam-monitor-container div {
+	height: 100%;
+}
+.scene .webcam-monitor-container video{
+	width: 500px !important;
+	height: 100% !important;
+}
+
+#scene-00 .sidebar {
+	grid-area: sidebar;
+	margin-bottom: 5rem;
+}
+
+#scene-00 .abstract {
+	grid-area: abstract;
+	margin-bottom: 5rem;
+}
+
+#scene-00 .controls {
+	grid-area: controls;
+	text-align: center;
+}
+#scene-00 .pretitle {
+	display: flex;
+	width: 350px;
+	margin-bottom: 2rem;
+	height: 6rem;
+}
+#scene-00 .pretitle p {
+	align-self: flex-end;
+}
+
+#scene-00 .webcam-monitor-container video {
+	width: 350px !important;
+	height: 100%;
+}
+#scene-03 .webcam-monitor-container {
+	background-color: var(--light);
+	color: var(--dark);
+	padding: 2rem;
+	border-radius: 10px;
+	height: auto;
+	/* align-self: stretch; */
+	height: 100%;
+}
+
+#scene-04 .controls {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-items: center;
+}
+#scene-04 button {margin-bottom: 1rem;}
+
+/* ==P5 Helpers ************************************************* */
+/* ************************************************************** */
+
+#status {
+	color: var(--secondary);
+	margin: 0.25em 0 1.25em;
+}
+
+canvas {
+}
+
+/* ==Controls  ************************************************** */
+/* ************************************************************** */
+
+label {
+	display: block;
+	padding-bottom: 1em;
+}
+
+button,
+.btn {
+	background-color: var(--dark);
+	color: var(--secondary);
+	letter-spacing: 4px;
+	padding: 1.25rem;
+	border-radius: 10px;
+	border: 2px solid var(--dark);
+	text-align: center;
+	text-transform: uppercase;
+}
+
+button:hover,
+.btn:hover {
+	background-color: var(--dark);
+	color: var(--primary);
+	text-decoration: none;
+}
+
+.btn-primary,
+button.primary,
+.btn.primary {
+	background-color: var(--primary) !important;
+	color: var(--dark);
+	border-color: var(--primary);
+}
+.btn-primary:hover,
+button.primary:hover,
+.btn.primary:hover {
+	color: var(--dark) !important;
+}
+
+/* ==Utilities  ************************************************* */
+/* ************************************************************** */
+.rec,
+button.rec:hover,
+.btn.rec:hover {
+	background-color: var(--recording);
+	color: var(--primary);
+}
+.disabled,
+button.disabled:hover,
+.btn.disabled:hover {
+	background-color: var(--black);
+	color: var(--tertiary);
+	border-color: var(--black);
+}
+
+button.rec:hover,
+.btn.rec:hover {
+}
+.hidden {
+	display: none !important;
+}
+
+.preroll,
+button.preroll:hover,
+.btn.preroll:hover {
+	background-color: var(--recording);
+	color: var(--primary);
+}
+
+.text-muted,
+a.text-muted {
+	color: #8e8c84;
+}
+
+strong {
+	color: white;
+	font-weight: bold;
+	font-style: italic;
+}
+.light strong {
+	color: black
+}
+
+
+.nolist {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.centered {
+	text-align: center;
+}
+
+/* ==Misc  *************************************************** */
+/* ************************************************************** */
+
+/* Places the dat.GUI on the left */
+.dg.a {
+	/* float: left; */
+}
+
+#test-controls {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+}
+
+#source-controls {
+	text-align: center;
+}
+
+.group {
+	padding-bottom: 1rem;
+}
+
+.group a {
+	display: block;
+}
+.slider-label {
+	display: block;
+}
+
+div.sketch-controls .group {
+	font-size: 0.9rem !important;
+}
+
+.white {
+	color: #fff !important;
+}
+/* For expression graph */
+table th {
+	text-align: left;
+	padding-right: 2rem;
+}
+
+
+header div,
+header h1 {
+	font-size: 0.8125rem;
+}
+
+/* Step 0 */
+
+body > #step-0 {
+	padding-top: 10rem;
+}
+
+#step-0 .controls {
+	margin: 50px !important;
+}
+
+#step-0 .abstract-preview {
+	background-color: white;
+	width: 380px;
+	height: 380px;
+}
+
+.sketch-placeholder {
+	width: 100%;
+	height: 100%;
+	background-color: #f8f9fa;
+}
+
+/* Step 3 */
+
+.out-loud {
+	font-family: 'Lora', serif;
+}
+.card {
+	background: #e0e0e0;
+	color: black;
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>ABSTRACT YOU</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no"
+		/>
+
+		<link rel="stylesheet" href="app/style.css" />
+		<style>
+			.invisible { visibility: hidden;}
+		</style>
+	</head>
+
+	<body>
+		<main class="main container d-flex align-items-center h-100 container-fluid">
+			<div class="row flex-fill">
+				<div class="col text-center">
+					<div class="group">
+						<p>
+							<a href="sketch.html" id="start-button" class="btn btn-primary">Start</a>
+						</p>
+					</div>
+
+					<div class="group">
+						<p>
+							<a class="small text-muted centered" id="testing" href="#">Test</a>
+						</p>
+					</div>
+
+					<div class="group">
+						<ul class="nolist centered invisible" id="test-list">
+							<li><a class="small text-muted" href="test01">Test 01</a></li>
+							<li><a class="small text-muted" href="test02">Test 02</a></li>
+							<li><a class="small text-muted" href="test03">Test 03</a></li>
+							<li><a class="small text-muted" href="test04">Test 04</a></li>
+							<li><a class="small text-muted" href="test05">Test 05</a></li>
+						</ul>
+
+					</div>
+
+				</div>
+			</div>
+		</main>
+		<script type="text/javascript">
+			document
+				.getElementById('testing')
+				.addEventListener('click', function (e) {
+					document.getElementById('test-list').classList.toggle('invisible');
+				});
+		</script>
+	</body>
+</html>
