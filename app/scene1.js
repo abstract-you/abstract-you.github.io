@@ -2,7 +2,7 @@ function scene01() {
 	this.enter = function () {
 		noseAnchor = '';
 		resetRecVariables();
-		chooseScene('#scene-01')
+		chooseScene('#scene-01');
 		canvas.parent('#canvas-01');
 		resizeCanvas(820, 820);
 		// resize video for a larger preview this time
@@ -21,9 +21,15 @@ function scene01() {
 
 	// --1draw
 	this.draw = function () {
+		vf.background(0);
 		background(255);
-		translate(width, 0);
+		translate(width, false);
 		scale(-1, 1);
+
+		if (sample) {
+			// vs is 500x470 but feed is 627x470
+			vf.image(sample, -50, 0);
+		}
 
 		if (poses) {
 			if (poses[0]) {
@@ -33,15 +39,15 @@ function scene01() {
 				if (!preroll) previewSkeleton(poses[0]);
 
 				// Draw pose for reference
-				if (par.showPose) {
-					push();
-					stroke('red');
-					strokeWeight(10);
-					pose.forEach(p => {
-						point(p.position.x, p.position.y);
-					});
-					pop();
-				}
+				// if (par.showPose) {
+				// 	push();
+				// 	stroke('red');
+				// 	strokeWeight(10);
+				// 	pose.forEach(p => {
+				// 		point(p.position.x, p.position.y);
+				// 	});
+				// 	pop();
+				// }
 
 				// Draw expanded points for reference
 				if (par.showExpanded) {
@@ -62,11 +68,6 @@ function scene01() {
 			}
 		}
 
-		if (sample) {
-			// vs is 500x470 but feed is 627x470
-			vf.image(sample, -50, 0);
-		}
-
 		playPreroll();
 
 		if (play && !preroll) playShape(history1);
@@ -77,7 +78,7 @@ function scene01() {
 function playShape(history) {
 	// Use the current frame counter as an iterator for looping through the recorded array
 	let cp = frameCount % history.length;
-	drawShape(history[cp]);
+	drawShape(history);
 }
 
 // Draws an outline based on posenet keypoints
@@ -86,20 +87,35 @@ function drawShape(points) {
 	expanded = bodyNet(anchors, par.happy);
 	hullSet = hull(expanded, par.roundness);
 
+	// Looks better than endShape(CLOSE)
+	hullSet.push(hullSet[1]);
+	hullSet.push(hullSet[0]);
+
+	let padded = [];
+
+	// function remap(point, range, dim, padding) {
+	// 	return map(point, 0, range, padding, dim - padding);
+	// }
+
+	hullSet.forEach(p => {
+		padded.push(
+			[
+				remap(p[0], sample.width, width, par.padding),
+				remap(p[1], sample.height, height, par.padding)
+			]
+		);
+	});
+
 	push();
 	stroke(0);
 	strokeWeight(par.shapeStrokeWeight);
 	noFill();
 	beginShape();
-	hullSet.forEach(p => {
-		if (par.showCurves) {
-			curveVertex(p[0], p[1]);
-		} else {
-			vertex(p[0], p[1]);
-		}
+	padded.forEach(p => {
+		curveVertex(p[0], p[1]);
 	});
 
-	endShape(CLOSE);
+	endShape();
 	pop();
 }
 
@@ -170,7 +186,7 @@ function bodyNet(pose) {
 
 function recordPose(points) {
 	history1.push(points);
-	setCounter(par.framesToRecord-history1.length);
+	setCounter(par.framesToRecord - history1.length);
 	if (history1.length === par.framesToRecord) finishRecording();
 }
 

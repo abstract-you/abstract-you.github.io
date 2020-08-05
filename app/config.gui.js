@@ -1,6 +1,6 @@
 class Paramaterize {
 	constructor() {
-		this.scene = 0;
+		this.scene = 1;
 		this.voiceScaleModifier = 1;
 		this.framesToRecord = 900; // 900 frames is about 15 seconds
 		this.shapeStrokeWeight = 2;
@@ -17,13 +17,13 @@ class Paramaterize {
 		this.frameRate = true;
 		this.phaseMultiplier = 0.1;
 		this.emotionalIntensity = 10;
-		this.minR = 44; // scene 0
-		this.maxR = 66; // scene 0
-		this.noiseMax = 1; // scene 0
-		this.xNoiseMax = 1; // scene 0
-		this.yNoiseMax = 1; // scene 0
-		this.zNoiseOffset = 0.0001; // scene 0
-		this.phaseMaxOffset = 0.01; // scene 0
+		this.minR = 44; 
+		this.maxR = 66; 
+		this.noiseMax = 1; 
+		this.xNoiseMax = 1; 
+		this.yNoiseMax = 1;
+		this.zNoiseOffset = 0.0001; 
+		this.phaseMaxOffset = 0.01; 
 		this.nosePhaseMax = 0.0001;
 		this.phaseMax = 0.0001;
 		this.inc = 12;
@@ -49,10 +49,11 @@ class Paramaterize {
 		this.showPose = true;
 		this.showHull = true;
 		this.fillShape = false;
-		this.showCurves = false;
+		this.showCurves = true;
 		this.audioResolution = 32; // bins
 		this.happy = 1;
 		this.angry = 1;
+		this.padding = 133;
 	}
 }
 
@@ -80,4 +81,5 @@ gui.add(par, 'emotionalIntensity');
 gui.add(par, 'voiceScaleModifier');
 gui.add(par, 'showPose');
 gui.add(par, 'showAnchors');
+gui.add(par, 'padding');
 gui.close()

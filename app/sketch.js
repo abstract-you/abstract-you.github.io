@@ -4,7 +4,7 @@ let status;
 let sample;
 let webcamPreview;
 let button;
-let videoSample;
+let videoSample = 'assets/01.mp4'
 
 let sceneReady = false;
 
@@ -325,6 +325,22 @@ function retargetAnchorsFromPose(targets) {
 	});
 }
 
+function retargetAnchorsFromPoints(targets) {
+	// TODO: mark anchors, text or color or something
+	anchors.forEach((a, i) => {
+		if (targets[i]) {
+			let v = createVector(targets[i][0], targets[i][1]);
+			a.setTarget(v);
+		} else {
+			let v = createVector(targets[0][0], targets[0][1]);
+			a.setTarget(v);
+		}
+		a.behaviors();
+		a.update();
+		if (par.showAnchors) a.show();
+	});
+}
+
 // Gets a posenet pose and returns distance between two points
 function poseDist(pose, a, b) {
 	let left = createVector(pose[a].position.x, pose[a].position.y);
@@ -529,7 +545,15 @@ function videoReady() {
 	});
 }
 
-function remap(point, range, dim) {
-	map(point, 0, range, dim + 100, dim - 100);
+function remap(point, range, dim, padding) {
+	return map(point, 0, range, padding, dim - padding);
+}
+
+// remapPosenet(p, sample.width, sample.height, width, height, par.padding),
+function remapPosenetToArray(point, rWidth, rHeight, cWidth, cHeight, padding) {
+	// console.log('remapPosenetToArray',point, rWidth, rHeight, cWidth, cHeight, padding)
+	let newX = map(point.position.x, 0, rWidth, padding, cWidth - padding);
+	let newY = map(point.position.y, 0, rHeight, padding, cHeight - padding);
+	return [newX,newY]
 }
 
