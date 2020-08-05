@@ -38,7 +38,7 @@ Used separately to choose the final expression
 let expressionAggregate = [];
 
 let voiceHistory = [];
-let options = { maxPoseDetections: 2 };
+let options = { maxPoseDetections: 1 };
 
 let noseAnchor;
 let anchors = [];
@@ -115,7 +115,6 @@ const PARTS = [
 p5.disableFriendlyErrors = true;
 
 function setup() {
-
 	angleMode(DEGREES);
 	mgr = new SceneManager();
 
@@ -392,7 +391,7 @@ function cancelRecording() {
 	resetRecVariables();
 	button.removeClass('preroll');
 	button.removeClass('rec');
-	button.html('Record')
+	button.html('Record');
 	if (mgr.isCurrent(scene01)) {
 		button.mousePressed(() => {
 			startPreroll();
@@ -517,7 +516,7 @@ function getNewVideo(loc) {
 	sample = createVideo(loc, videoReady);
 	sample.volume(0);
 	sample.loop();
-		sample.size(627, 470);
+	sample.size(627, 470);
 	sample.hide();
 }
 
@@ -529,3 +528,8 @@ function videoReady() {
 		poses = results;
 	});
 }
+
+function remap(point, range, dim) {
+	map(point, 0, range, dim + 100, dim - 100);
+}
+

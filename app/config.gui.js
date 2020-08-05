@@ -1,19 +1,19 @@
 class Paramaterize {
 	constructor() {
-		this.scene = 1;
+		this.scene = 0;
 		this.voiceScaleModifier = 1;
 		this.framesToRecord = 900; // 900 frames is about 15 seconds
 		this.shapeStrokeWeight = 2;
 		this.mississippi = 240; // 240 frames is about 4 seconds
 		this.roundness = 95;
 		this.emotionalScale = 0.5;
-		this.showExpanded = false;
+		this.showExpanded = true;
 		this.innerStar = 100;
 		this.outerStar = 200;
 		this.starPoints = 9;
 		this.noseOnly = false;
 		this.useSamplePose = true;
-		this.debug = false;
+		this.debug = true;
 		this.frameRate = true;
 		this.phaseMultiplier = 0.1;
 		this.emotionalIntensity = 10;
@@ -46,7 +46,7 @@ class Paramaterize {
 		this.noseExpandRatio = 3.5;
 		this.noiseLevel = 0.001;
 		this.showAnchors = true;
-		this.showPose = false;
+		this.showPose = true;
 		this.showHull = true;
 		this.fillShape = false;
 		this.showCurves = false;
