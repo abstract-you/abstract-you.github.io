@@ -71,8 +71,6 @@ const faceOptions = {
 let mic;
 let spectrum;
 let ampl;
-let song;
-let isSongReady = false;
 
 let mgr, g;
 
@@ -116,7 +114,6 @@ const PARTS = [
 p5.disableFriendlyErrors = true;
 
 function setup() {
-	song = loadSound('../assets/music/spk.mp3', songReady);
 
 	angleMode(DEGREES);
 	mgr = new SceneManager();
@@ -515,6 +512,3 @@ function resetRecVariables() {
 	phase = 0.0;
 }
 
-function songReady() {
-	isSongReady = true;
-}
