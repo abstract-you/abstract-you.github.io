@@ -71,17 +71,21 @@ main p {
 canvas {
 	border-radius: 10px;
 }
+
 .scene .sidebar .title {
 	font-weight: bold;
 }
+
 .light .directions {
 	background-color: var(--primary);
 	color: var(--dark)
 }
+
 .directions {
 	background-color: var(--dark);
 	color: var(--secondary)
 }
+
 /* ==Layout  **************************************************** */
 /* ************************************************************** */
 
@@ -169,21 +173,20 @@ button.counter {
 		'controls controls controls';
 }
 
-.webcam-monitor-container video {
+ #scene-00 .webcam-monitor-container video {
 	border-radius: 10px;
 	transform: scaleX(-1);
 	object-fit: cover;
-}
-.scene .webcam-monitor-container {
+} 
+
+#scene-00 .webcam-monitor-container {
 	height: 100%;
 }
-.scene .webcam-monitor-container div {
+
+#scene-00 .webcam-monitor-container div {
 	height: 100%;
 }
-.scene .webcam-monitor-container video{
-	width: 500px !important;
-	height: 100% !important;
-}
+
 
 #scene-00 .sidebar {
 	grid-area: sidebar;
@@ -222,6 +225,7 @@ button.counter {
 	/* align-self: stretch; */
 	height: 100%;
 }
+
 #scene-03 .webcam-monitor-container p {
 margin-bottom: 1em;
 
