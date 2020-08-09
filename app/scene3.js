@@ -7,7 +7,6 @@ function scene03() {
 		}
 		faceapiStandby = true;
 		startMic();
-		ampl = new p5.Amplitude();
 		vf.hide();
 
 		resetRecVariables();
@@ -26,18 +25,16 @@ function scene03() {
 	// --3draw
 
 	this.draw = function () {
-		ampl.setInput(mic);
+		micLevel = mic.getLevel()
+		let shapeStyle = analyzeExpressionHistory(expressionAggregate)
 
 		background('#f9f9f9');
 
-		if (par.debug) graphVoice(ampl.getLevel());
+		if (par.debug) graphVoice(micLevel);
 		mirror(); // Mirror canvas to match mirrored video
 
 		if (!full) {
-			playLiveShape3(
-
-				ampl.getLevel()
-			);
+			playLiveShape3(history2, shapeStyle, micLevel);
 		}
 		if (full) playHistoryShape3(voiceHistory);
 		if (par.frameRate) fps();
@@ -52,7 +49,7 @@ function voiceNet(points, level) {
 		let offset = 0;
 		if (level) {
 			if (level[0]) {
-				offset = map(level[0], 0, 255, -50, 50);
+				offset = map(level[0], 0, 255, par.levelHigh, par.levelLow);
 			}
 		}
 		x = p[0] + phase + offset * sin(i);
@@ -78,22 +75,32 @@ function playLiveShape3(history, type, level) {
 }
 
 function drawLiveShape3(history, type, level) {
-	let scale = map(level,0,1,.5,3.5)
+	let scale = map(level, 0, 1, par.minSoundLevel, par.maxSoundLevel);
 	retargetAnchorsFromPose(history);
 	if (type === 'softer') {
-		expanded = softerBody(anchors, 1,scale*par.voiceScaleModifier);
+		expanded = softerBody(anchors);
 	} else {
-		expanded = sharperBody(anchors, 1,scale*par.voiceScaleModifier);
+		expanded = sharperBody(anchors);
 	}
-	hullSet = hull(expanded, par.roundness);
-	if (rec) recordVoice(hullSet);
+	hullSet = hull(expanded, par.roundness3);
+
+	let padded = [];
+
+	hullSet.forEach(p => {
+		padded.push([
+			remap(p[0], par.sampleWidth, width, scale),
+			remap(p[1], par.sampleHeight, height, scale),
+		]);
+	});
+
+	if (rec) recordVoice(padded);
 
 	push();
 	stroke(0);
 	strokeWeight(par.shapeStrokeWeight);
 	noFill();
 	beginShape();
-	hullSet.forEach(p => {
+	padded.forEach(p => {
 		if (par.showCurves) {
 			curveVertex(p[0], p[1]);
 		} else {
@@ -129,14 +136,14 @@ function drawHistoryShape3(history) {
 }
 
 function graphVoice(rms) {
-	push()
+	push();
 	fill(127);
 	stroke(127);
-	textAlign(CENTER, CENTER)
+	textAlign(CENTER, CENTER);
 
 	// Draw an ellipse with size based on volume
 	// ellipse(width / 2, height / 2, 10 + rms * 200, 10 + rms * 200);
 	ellipse(width / 2, height - 100, 10 + rms * 200);
-	text(floor(rms*200),width/2,height - 150)
-	pop()
+	text(floor(rms * 200), width / 2, height - 150);
+	pop();
 }

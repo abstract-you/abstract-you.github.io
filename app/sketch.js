@@ -40,6 +40,8 @@ let expressionAggregate = [];
 let voiceHistory = [];
 let options = { maxPoseDetections: 1 };
 
+let micLevel;
+
 let noseAnchor;
 let anchors = [];
 let expanded = [];
@@ -113,9 +115,13 @@ const PARTS = [
 	'rightAnkle',
 ];
 
-p5.disableFriendlyErrors = true;
-
+// p5.disableFriendlyErrors = true;
+function mousePressed() {
+  userStartAudio();
+}
 function setup() {
+	getAudioContext().suspend();
+
 	angleMode(DEGREES);
 	mgr = new SceneManager();
 
@@ -263,7 +269,7 @@ function scene00() {
 				let ny = noseAnchor.position.y;
 
 				// Keeps shape from reaching the corners
-				let pad = constrain(par.maxR * 2, 0, width / 4);
+				let pad = constrain(80, 0, width / 4);
 				// Mirror? Flip back?
 				let fx = map(nx, 0, width, width, 0);
 				let cx = constrain(fx, pad, width - pad);
@@ -275,22 +281,18 @@ function scene00() {
 				strokeWeight(par.shapeStrokeWeight);
 				noFill();
 				beginShape();
-				for (let a = 0; a < 360; a += par.inc) {
+				for (let a = 0; a < 360; a += 1) {
 					// Follow a circular path through the noise space to create a smooth flowing shape
-					let xoff = map(cos(a + phase), -1, 1, 0, par.xNoiseMax);
-					let yoff = map(sin(a + phase), -1, 1, 0, par.yNoiseMax);
-					let r = map(noise(xoff, yoff, zoff), 0, 1, par.minR, par.maxR);
+					let xoff = map(cos(a + phase), -1, 1, 0, 1);
+					let yoff = map(sin(a + phase), -1, 1, 0, 1);
+					let r = map(noise(xoff, yoff, zoff), 0, 1, 50, 60);
 					let x = r * cos(a);
 					let y = r * sin(a);
-					if (par.showCurves) {
-						curveVertex(x, ay);
-					} else {
-						vertex(x, y);
-					}
+						curveVertex(x, y);
 				}
 				endShape(CLOSE);
-				phase += 0.01;
-				zoff += par.zNoiseOffset;
+				phase += 0.001;
+				zoff += 0.03;
 				pop();
 			}
 		}

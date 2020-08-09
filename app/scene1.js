@@ -14,7 +14,6 @@ function scene01() {
 		button.mousePressed(() => {
 			startPreroll();
 		});
-		// if (par.debug) getNewVideo('assets/01.mp4')
 	};
 
 	this.setup = function () {};
@@ -36,7 +35,7 @@ function scene01() {
 				let pose = poses[0].pose.keypoints;
 
 				// Draw skeleton in vf
-				if (!preroll) previewSkeleton(poses[0]);
+				if (!preroll && par.showHUD) previewSkeleton(poses[0]);
 
 				// Draw pose for reference
 				// if (par.showPose) {
@@ -86,7 +85,7 @@ function drawShape(points) {
 	// console.log('drawShape',points)
 	retargetAnchorsFromPose(points);
 	expanded = bodyNet(anchors);
-	hullSet = hull(expanded, 150);
+	hullSet = hull(expanded, par.roundness1);
 
 	// Looks better than endShape(CLOSE)
 	hullSet.push(hullSet[1]);

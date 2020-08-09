@@ -27,6 +27,7 @@ function scene02() {
 		mirror(); // Mirror canvas to match mirrored video
 		// The preview is 500x470 but the cam feed is 627x470
 		if (sample) vf.image(sample, -50, 0);
+		// if (par.showHUD) expressionReference();
 		if (faceapiLoaded) {
 			// First just the graph
 			if (detections[0] && par.debug) graphExpressions();
@@ -83,19 +84,33 @@ function drawLiveShape2(points) {
 		pop();
 	}
 
-	hullSet = hull(expanded, par.roundness);
+
+
+	if (shapeType === 'softer') {
+	hullSet = hull(expanded, par.roundnessSofter);
+	} else {
+	hullSet = hull(expanded, par.roundnessSharper);
+	}
+	let padded = [];
+
+	hullSet.forEach(p => {
+		padded.push([
+			remap(p[0], par.sampleWidth, width, par.padding2),
+			remap(p[1], par.sampleHeight, height, par.padding2),
+		]);
+	});
 
 	push();
 	stroke(0);
 	strokeWeight(par.shapeStrokeWeight);
 	noFill();
 	beginShape();
-	hullSet.forEach(p => {
-		if (par.showCurves) {
+	padded.forEach(p => {
+	if (shapeType === 'softer') {
 			curveVertex(p[0], p[1]);
-		} else {
+	} else {
 			vertex(p[0], p[1]);
-		}
+	}
 	});
 
 	endShape(CLOSE);
@@ -118,19 +133,33 @@ function drawHistoryShape2(history, shapeType) {
 	} else {
 		expanded = sharperBody(anchors);
 	}
-	hullSet = hull(expanded, par.roundness);
+
+	if (shapeType === 'softer') {
+	hullSet = hull(expanded, par.roundnessSofter);
+} else {
+	hullSet = hull(expanded, par.roundnessSharper);
+	}
+
+	let padded = [];
+
+	hullSet.forEach(p => {
+		padded.push([
+			remap(p[0], par.sampleWidth, width, par.padding2),
+			remap(p[1], par.sampleHeight, height, par.padding2),
+		]);
+	});
 
 	push();
 	stroke(0);
 	strokeWeight(par.shapeStrokeWeight);
 	noFill();
 	beginShape();
-	hullSet.forEach(p => {
-		if (par.showCurves) {
+	padded.forEach(p => {
+	if (shapeType === 'softer') {
 			curveVertex(p[0], p[1]);
-		} else {
+	} else {
 			vertex(p[0], p[1]);
-		}
+	}
 	});
 
 	endShape(CLOSE);
@@ -224,7 +253,15 @@ function softerBody(pose) {
 
 	/*  
 
-	expandBlob(point, angles, minR, maxR, maxX, maxY, maxOff, i, effect)
+	point,
+	i = 0,
+	angles = par.angles,
+	minR = 5,
+	maxR = 100,
+	maxX = 2,
+	maxY = 2,
+	maxOff = par.phase,
+	effect = par.effect
 
 	First argument is the point to expand. 
 	Second argument is the distance between
@@ -243,22 +280,12 @@ function softerBody(pose) {
 	pose.forEach((p, i) => {
 		switch (p.part) {
 			case 'nose':
-				newArr = newArr.concat(
-					expandBlob(
-						p,
-						20, // angle increments
-						10, // minimum radius
-						200, // maxium radius
-						2, // x offset in noise space
-						4, // y offset in noise space
-						0.05, // phase shift
-						i
-					)
-				);
+				let tempNose = {}
+				newArr = newArr.concat(expandBlob(p, 1, 10, 100));
 				break;
 			case 'leftEar':
 			case 'rightEar':
-				newArr = newArr.concat(expandBlob(p, 5, 5, 50, 2, 4, 0.01, i));
+				newArr.push([p.position.x, p.position.y]);
 				break;
 			case 'leftEye':
 			case 'rightEye':
@@ -267,30 +294,30 @@ function softerBody(pose) {
 			// Arms
 			case 'leftShoulder':
 				l1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 5, 5, 150, 2, 4, 0.01, i));
+				newArr = newArr.concat(expandBlob(p, 1, 10, 50, 50, 20, -1));
 				break;
 			case 'rightShoulder':
 				r1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 5, 5, 150, 2, 4, -0.01, i));
+				newArr = newArr.concat(expandBlob(p, 1, 10, 50, 50, 20, -1));
 				break;
-			// case 'leftElbow':
-			// case 'rightElbow':
-			// case 'leftWrist':
-			// case 'rightWrist':
+			case 'leftElbow':
+			case 'rightElbow':
+			case 'leftWrist':
+			case 'rightWrist':
 			case 'leftHip':
 				l2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 10, 5, 50, 2, 4, 0.02, i));
+				newArr = newArr.concat(expandBlob(p));
 				break;
 			case 'rightHip':
 				r2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 10, 5, 50, 2, 4, -0.02, i));
+				newArr = newArr.concat(expandBlob(p));
 				break;
 			// case 'leftKnee':
 			// case 'rightKnee':
 			// case 'leftAnkle':
 			// case 'rightAnkle':
 			default:
-				newArr = newArr.concat(expandBlob(p, 5, 5, 100, 2, 4, 0.01, i));
+				newArr.push([p.position.x, p.position.y]);
 				break;
 		}
 	});
@@ -301,24 +328,23 @@ function softerBody(pose) {
 	let middle1 = p5.Vector.lerp(l1, r1, 0.5);
 	let middle2 = p5.Vector.lerp(l2, r2, 0.5);
 
-	newArr = newArr.concat(expandBlob(leftSide, 5, 1, 100, 2, 4, 0.001, -1));
-	newArr = newArr.concat(expandBlob(rightSide, 5, 1, 100, 2, 4, 0.001, -2));
-	newArr = newArr.concat(expandBlob(middle1, 5, 1, 100, 2, 4, 0.001, -3));
-	newArr = newArr.concat(expandBlob(middle2, 5, 1, 100, 2, 4, 0.001, -4));
+	newArr = newArr.concat(expandBlob(leftSide));
+	newArr = newArr.concat(expandBlob(rightSide));
+	newArr = newArr.concat(expandBlob(middle1));
+	newArr = newArr.concat(expandBlob(middle2));
 
 	return newArr;
 }
 
 function expandBlob(
 	point,
-	angles,
-	minR,
-	maxR,
-	maxX,
-	maxY,
-	maxOff,
-	i,
-	effect = 1
+	angles = par.angles,
+	minR = 5,
+	maxR = 100,
+	maxX = 2,
+	maxY = 2,
+	maxOff = par.phase,
+	effect = par.effect
 ) {
 	let x, y;
 	let px, py;
@@ -333,16 +359,22 @@ function expandBlob(
 		px = point[0];
 		py = point[1];
 	}
-	for (let a = 0; a < 360; a += angles) {
-		let xoff = map(cos(a + phase), -1, 1, 0, maxX * effect) + i;
-		let yoff = map(sin(a + phase), -1, 1, 0, maxY * effect) + i;
-		let r = map(noise(xoff, yoff, zoff), 0, 1, minR * effect, maxR * effect);
+	for (let a = 0; a < 360; a += par.angles) {
+		let xoff = map(cos(a + phase), -1, 1, 0, par.maxY * par.effect);
+		let yoff = map(sin(a + phase), -1, 1, 0, par.maxX * par.effect);
+		let r = map(
+			noise(xoff, yoff, zoff),
+			0,
+			1,
+			par.minR * par.effect,
+			par.maxR * par.effect
+		);
 		x = px + r * cos(a);
 		y = py + r * sin(a);
 		newArr.push([x, y]);
 	}
-	let pOff = map(noise(zoff), 0, 1, 0, maxOff * effect);
-	phase += pOff * par.phaseMultiplier;
+	let pOff = map(noise(zoff), 0, 1, 0, par.phase * par.effect);
+	phase += pOff;
 	zoff += par.zNoiseOffset;
 	return newArr;
 }
@@ -463,12 +495,3 @@ function getShapeType() {
 	}
 	return type;
 }
-
-// // soft = expressions[0][1] + expressions[1][1] + expressions[6][1];
-// // sharp =
-// // 	expressions[2][1] +
-// // 	expressions[3][1] +
-// // 	expressions[4][1] +
-// // 	expressions[5][1];
-
-// expression = topExpression(expressions);

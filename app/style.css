@@ -3,7 +3,7 @@ Space Mono is a fixed-width font with four weights: 400, 400 Italic, 700, 700 It
 height: 100%;
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 :root {
 	--black: #000000;
@@ -35,7 +35,6 @@ body.light {
 }
 
 body,button {
-
 	font-family: 'Space Mono', monospace;
 }
 
@@ -64,6 +63,7 @@ button {
 main .title {
 	font-size: 13px;
 }
+
 main p {
 	margin: 0;
 }
@@ -78,7 +78,7 @@ canvas {
 
 .light .directions {
 	background-color: var(--primary);
-	color: var(--dark)
+	color: var(--dark);
 }
 
 .directions {
@@ -113,6 +113,7 @@ main .directions {
 	border-radius: 10px;
 	margin-bottom: 40px;
 }
+
 main .directions p {
 	margin-bottom: 1rem;
 }
@@ -121,7 +122,6 @@ main .controls {
 	margin-top: 40px;
 	align-self: flex-end;
 }
-
 
 .scene .sidebar {
 	display: flex;
@@ -137,6 +137,7 @@ main .controls {
 	display: flex;
 	align-self: flex-end;
 }
+
 .scene .abstract {
 	height: 100%;
 	border-radius: 10px;
@@ -219,7 +220,7 @@ button.counter {
 #scene-03 .webcam-monitor-container {
 	background-color: var(--light);
 	color: var(--dark);
-	padding: 2rem;
+	padding: 2.5rem;
 	border-radius: 10px;
 	height: auto;
 	/* align-self: stretch; */
@@ -228,6 +229,10 @@ button.counter {
 
 #scene-03 .webcam-monitor-container p {
 margin-bottom: 1em;
+font-family: 'Lora', serif !important;
+font-size: 20px;
+letter-spacing: 0.5px;
+line-height: 30px;
 
 }
 

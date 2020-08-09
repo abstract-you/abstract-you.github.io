@@ -29,4 +29,6 @@ function scene04() {
 	};
 }
 
-function saveAbstractYou() {}
+function saveAbstractYou() {
+save(canvas,'abstract.png')
+}
