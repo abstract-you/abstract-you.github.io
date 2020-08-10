@@ -1,89 +1,10 @@
-// --posenet
-let canvas, vf;
-let status;
-let sample;
-let webcamPreview;
-let recButton;
-let nextButton;
-let restartButton;
-let redoButton;
-let counterButton;
+// let gifc = new CCapture({
+// 	framerate: 24, // TODO: investigate further
+// 	verbose: true,
+// 	format: 'gif',
+// 	workersPath: './lib/',
+// });
 
-let finalShapeType;
-let videoSample = 'assets/01.mp4';
-
-let sceneReady = false;
-
-let rec = false;
-let preroll = false;
-let play = false;
-let full = false;
-let prerollCounter = 0;
-
-let posenet;
-let poses = [];
-
-let history1 = [];
-let history2 = [];
-let history3 = [];
-
-let options = { maxPoseDetections: 1 };
-
-let micLevel;
-
-let noseAnchor;
-let anchors = [];
-let expanded = [];
-let hullSet = [];
-
-let phase = 0.0;
-let zoff = 0.0;
-
-let eyeDist;
-let shoulderDist;
-let hipDist;
-let eyeShoulderRatio;
-let eyeWaistRatio;
-let shoulderWaistRatio;
-
-// --faceapi
-let faceapi;
-let detections = [];
-let faceapiLoaded = false;
-let faceapiStandby = true;
-let isFaceApiReady = false;
-
-const faceOptions = {
-	withLandmarks: false,
-	withExpressions: true,
-	withDescriptors: false,
-};
-
-// --sound
-
-let mic;
-let spectrum;
-let ampl;
-
-let mgr, g;
-
-const NOSE = 0;
-const LEFTEYE = 1;
-const RIGHTEYE = 2;
-const LEFTEAR = 3;
-const RIGHTEAR = 4;
-const LEFTSHOULDER = 5;
-const RIGHTSHOULDER = 6;
-const LEFTELBOW = 7;
-const RIGHTELBOW = 8;
-const LEFTWRIST = 9;
-const RIGHTWRIST = 10;
-const LEFTHIP = 11;
-const RIGHTHIP = 12;
-const LEFTKNEE = 13;
-const RIGHTKNEE = 14;
-const LEFTANKLE = 15;
-const RIGHTANKLE = 16;
 const PARTS = [
 	'nose',
 	'leftEye',
@@ -104,83 +25,183 @@ const PARTS = [
 	'rightAnkle',
 ];
 
-// p5.disableFriendlyErrors = true;
-function mousePressed() {
-  userStartAudio();
-}
+const SKELETON = [
+	[11, 5],
+	[7, 5],
+	[7, 9],
+	[11, 13],
+	[13, 15],
+	[12, 6],
+	[8, 6],
+	[8, 10],
+	[12, 14],
+	[14, 16],
+	[5, 6],
+	[11, 12],
+];
+
+// g?
+let mgr, g;
+
+let sketchCanvas;
+let monitor;
+let sample;
+
+let status;
+let recButton;
+let nextButton;
+let restartButton;
+let redoButton;
+let counterButton;
+let webcamPreview;
+
+let rec = false;
+let preroll = false;
+let play = false;
+let full = false;
+let sceneReady = false;
+let prerollCounter = 0;
+
+let posenet;
+let poses = [];
+let options = { maxPoseDetections: 1 };
+
+let eyeDist;
+let shoulderDist;
+let hipDist;
+let eyeShoulderRatio;
+let eyeWaistRatio;
+let shoulderWaistRatio;
+
+let noseAnchor;
+let anchors = [];
+let expanded = [];
+let hullSet = [];
+
+let faceapi;
+let detections = [];
+let faceapiLoaded = false;
+let faceapiStandby = true;
+let isFaceApiReady = false;
+const faceOptions = {
+	withLandmarks: false,
+	withExpressions: true,
+	withDescriptors: false,
+};
+
+let history1 = [];
+let history2 = [];
+let history3 = [];
+let finalShapeType;
+
+let phase = 0.0;
+let zoff = 0.0;
+
+let mic;
+let micLevel;
+let spectrum;
+let ampl;
+
+// const NOSE = 0;
+// const LEFTEYE = 1;
+// const RIGHTEYE = 2;
+// const LEFTEAR = 3;
+// const RIGHTEAR = 4;
+// const LEFTSHOULDER = 5;
+// const RIGHTSHOULDER = 6;
+// const LEFTELBOW = 7;
+// const RIGHTELBOW = 8;
+// const LEFTWRIST = 9;
+// const RIGHTWRIST = 10;
+// const LEFTHIP = 11;
+// const RIGHTHIP = 12;
+// const LEFTKNEE = 13;
+// const RIGHTKNEE = 14;
+// const LEFTANKLE = 15;
+// const RIGHTANKLE = 16;
+
+// const rfPARTS = [
+// 	'nose',
+// 	'leftEye',
+// 	'rightEye',
+// 	'leftEar',
+// 	'rightEar',
+// 	'leftShoulder',
+// 	'rightShoulder',
+// 	'leftElbow',
+// 	'rightElbow',
+// 	'leftWrist',
+// 	'rightWrist',
+// 	'leftHip',
+// 	'rightHip',
+// 	'leftKnee',
+// 	'rightKnee',
+// 	'leftAnkle',
+// 	'rightAnkle',
+// ];
+
+p5.disableFriendlyErrors = true;
+
 function setup() {
+	// required for making audio work for the microphone (in scene3)
 	getAudioContext().suspend();
-
-	angleMode(DEGREES);
 	mgr = new SceneManager();
-
-	// loadSample();
-	// // Preload scenes. Preloading is normally optional
-	// // ... but needed if showNextScene() is used.
-
 	mgr.addScene(scene00);
 	mgr.addScene(scene01);
 	mgr.addScene(scene02);
 	mgr.addScene(scene03);
 	mgr.addScene(scene04);
-
-	canvas = createCanvas(350, 350);
-	canvas.parent('#canvas-01');
-
-	vf = createGraphics(500, 470);
-	vf.translate(vf.width, 0);
-	vf.scale(-1, 1);
-	vf.textFont('Space Mono');
-
-	background(255);
+	angleMode(DEGREES);
+	sketchCanvas = createCanvas(350, 350);
+	sketchCanvas.parent('#canvas-01');
 	textFont('Space Mono');
-
+	background(255);
+	monitor = createGraphics(500, 470);
+	monitor.textFont('Space Mono');
+	monitor.background(255);
+	mirror(monitor);
+	startWebcam();
+	// start getting faceapi ready
+	if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
 	// Prepare anchors to chase posenet points
-	PARTS.forEach(p => {
-		let anchor = new Anchor(width / 2, height / 2, p);
+	PARTS.forEach(partName => {
+		let anchor = new Anchor(width / 2, height / 2, partName);
 		anchors.push(anchor);
 	});
-	// --b
-
+	// Prepare a dedicated anchor for the intro screen
+	noseAnchor = new Anchor(width / 2, height / 2);
 	select('#begin-button').mousePressed(() => {
 		mgr.showScene(scene01);
 	});
-
-
-	// Prepare a dedicated anchor for the intro screen
-	noseAnchor = new Anchor(width / 2, height / 2);
-
-	// start getting faceapi ready
-
-	startWebcam();
-	// getNewVideo(videoSample)
-
-	if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
-	gotoScene();
+	// Very basic routing
+	sceneRouter();
 }
 
 function draw() {
 	mgr.draw();
 }
 
-function gotoScene() {
+function sceneRouter() {
+	// dat.GUI gets these options as an array of numbers (not strings), so
+	// something probably needs to be changed
 	switch (par.scene) {
-		case 0:
+		case '0':
 			mgr.showScene(scene00);
 			break;
-		case 1:
+		case '1':
 			mgr.showScene(scene01);
 			break;
-		case 2:
+		case '2':
 			mgr.showScene(scene02);
 			break;
-		case 3:
+		case '3':
 			mgr.showScene(scene03);
 			break;
-		case 4:
+		case '4':
 			mgr.showScene(scene04);
 			break;
 		default:
+			console.log('bad scene request');
 			break;
 	}
 }
@@ -188,6 +209,11 @@ function gotoScene() {
 function startMic() {
 	mic = new p5.AudioIn();
 	mic.start();
+	// required for making audio work for the microphone (in scene3)
+	// https://p5js.org/reference/#/p5/userStartAudio
+	// (it gets suspended in setup and resumed )
+	// TODO: make sure it actually works correctly when called from here
+	userStartAudio();
 }
 
 function startWebcam() {
@@ -236,7 +262,7 @@ function scene00() {
 		// show this scene
 		select('#scene-00').removeClass('hidden');
 		// move the canvas over
-		canvas.parent('#canvas-00');
+		sketchCanvas.parent('#canvas-00');
 		// move the webcam monitor over
 		sample.parent('#webcam-monitor-00');
 		// resize video to fit previe frame
@@ -278,7 +304,7 @@ function scene00() {
 					let r = map(noise(xoff, yoff, zoff), 0, 1, 50, 60);
 					let x = r * cos(a);
 					let y = r * sin(a);
-						curveVertex(x, y);
+					curveVertex(x, y);
 				}
 				endShape(CLOSE);
 				phase += 0.001;
@@ -437,8 +463,8 @@ function finishRecording() {
 	// TODO localStorage?
 	rec = false;
 	full = true;
-	recButton.hide()
-	nextButton.show()
+	recButton.hide();
+	nextButton.show();
 	counterButton.hide();
 	redoButton.show();
 }
@@ -449,9 +475,9 @@ function deriveProportions(pose) {
 	hipDist = floor(poseDist(pose, LEFTHIP, RIGHTHIP));
 }
 
-function mirror() {
-	translate(width, 0);
-	scale(-1, 1);
+function mirror(obj = sketchCanvas) {
+	obj.translate(width, 0);
+	obj.scale(-1, 1);
 }
 
 function updateAnchors() {

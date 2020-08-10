@@ -1,13 +1,20 @@
 class Anchor {
-	constructor(x, y, p) {
+	constructor(x, y, part) {
 		this.position = createVector(x, y);
 		this.target = createVector(x, y);
 		this.vel = p5.Vector.random2D();
 		this.acc = createVector();
-		this.r = 10;
+		this.referenceShapeRadius = 12;
+		this.part = part;
+		this.zoff = 0.0;
+		this.phase = 0.0;
+		this.starXOff = 0.0;
+		this.starYOff = 0.0;
+		this.seed1 = random(1000);
+		this.seed2 = random(1000);
+		this.seed3 = random(1000);
 		this.topSpeed = par.topSpeed;
-		this.maxForce = par.maxAcc;
-		this.part = p;
+		this.maxAcc = par.maxAcc;
 	}
 
 	update() {
@@ -17,12 +24,23 @@ class Anchor {
 	}
 
 	show() {
-		push()
+		push();
 		noStroke();
-		fill('mistyrose');
-		ellipse(this.position.x, this.position.y, this.r);
-		// text(this.part,this.position.x,this.position.y)
-		pop()
+		fill('red');
+		let localRadius;
+		if (
+			this.part[0] === 'leftEye' ||
+			this.part[0] === 'rightEye' ||
+			this.part[0] === 'nose' ||
+			this.part[0] === 'leftEar' ||
+			this.part[0] === 'rightEar'
+		) {
+			localRadius = this.referenceShapeRadius;
+		} else {
+			localRadius = this.referenceShapeRadius * 0.8;
+		}
+		ellipse(this.position.x, this.position.y, localRadius);
+		pop();
 	}
 
 	addVertex() {
@@ -30,7 +48,7 @@ class Anchor {
 	}
 
 	setTarget(v) {
-		this.target = v
+		this.target = v;
 	}
 
 	// Runs behaviors
@@ -46,19 +64,19 @@ class Anchor {
 
 	seek(target) {
 		let desired = p5.Vector.sub(target, this.position);
-		desired.setMag(this.topSpeed);
+		desired.setMag(par.topSpeed);
 		let steer = p5.Vector.sub(desired, this.vel);
-		return steer.limit(this.maxForce);
+		return steer.limit(par.maxAcc);
 	}
 
 	flee(target) {
 		let desired = p5.Vector.sub(target, this.position);
 		if (desired.mag() < 90) {
-			desired.setMag(this.topSpeed);
+			desired.setMag(par.topSpeed);
 			// Reverse direction
 			desired.mult(-1);
 			let steer = p5.Vector.sub(desired, this.vel);
-			steer.limit(this.maxForce);
+			steer.limit(par.maxAcc);
 			return steer;
 		} else {
 			return createVector(0, 0);
@@ -68,128 +86,73 @@ class Anchor {
 	arrive(target) {
 		let desired = p5.Vector.sub(target, this.position);
 		let distance = desired.mag();
-		let speed = this.topSpeed;
+		let speed = par.topSpeed;
 		if (distance < 100) {
-			speed = map(distance, 0, 100, 0, this.topSpeed);
+			speed = map(distance, 0, 100, 0, par.topSpeed);
 		}
 		desired.setMag(speed);
 		let steer = p5.Vector.sub(desired, this.vel);
-		return steer.limit(this.maxForce);
+		return steer.limit(par.maxAcc);
 	}
 
-	/**
-	 * Gets an array of keypoints from PoseNet
-	 * Creates an array of p5 vectors
-	 */
-	static makeVectorArray(arr) {
+	blobify() {
+		let px = this.position.x;
+		let py = this.position.y;
+		let x, y;
 		let newArr = [];
-		for (const p of arr) {
-			let x = p.position.x;
-			let y = p.position.y;
-			let newP = createVector(p.position.x, p.position.y);
-			newP.part = p.part;
-			newArr.push(newP);
+
+		for (let a = 0; a < 360; a += par.angles) {
+			let xoff = map(cos(a + this.phase), -1, 1, 0, par.maxY);
+			let yoff = map(sin(a + this.phase), -1, 1, 0, par.maxX);
+
+			noiseSeed(this.seed1);
+			let n = noise(xoff, yoff, this.zoff);
+
+			let r = map(n, 0, 1, par.minRadius, par.maxRadius);
+
+			x = px + r * cos(a);
+			y = py + r * sin(a);
+
+			newArr.push([x, y]);
 		}
+		this.phase += par.maxPhaseShift;
+		this.zoff = par.maxZOff;
 		return newArr;
 	}
 
-	static expandPoints(arr, r) {
+	starify(effect=1) {
+		let x = this.position.x;
+		let y = this.position.y;
 		let newArr = [];
-		arr.forEach(p => {
-			let px = p.x;
-			let py = p.y;
-			for (let angle = 0; angle < 360; angle += 37) {
-				let x = px + r * sin(angle);
-				let y = py + r * cos(angle);
-				let newP = createVector(x, y);
-				newP.px = px;
-				newP.py = py;
-				newArr.push(newP);
-			}
-		});
-		return newArr;
-	}
 
-	static expandHeadPoints(arr, r) {
-		let newArr = [];
-		arr.forEach(p => {
-			if (p.part === 'nose' || p.part === 'leftEye' || p.part === 'rightEye') {
-				let px = p.x;
-				let py = p.y;
-				for (let angle = 0; angle < 360; angle += 37) {
-					let x = px + r * sin(angle);
-					let y = py + r * cos(angle);
-					let newP = createVector(x, y);
-					newP.px = px;
-					newP.py = py;
-					newArr.push(newP);
-				}
-			} else {
-				let newP = createVector(p.x, p.y);
-				newP.px = p.x;
-				newP.py = p.y;
-				newP.part = p.part;
-				newArr.push(newP);
-			}
-		});
-		return newArr;
-	}
-	/**
-	 * Get an array of points.
-	 * Return points to draw a convex hull around them.
-	 */
-	static convexHull(points) {
-		function removeMiddle(a, b, c) {
-			var cross = (a.x - b.x) * (c.y - b.y) - (a.y - b.y) * (c.x - b.x);
-			var dot = (a.x - b.x) * (c.x - b.x) + (a.y - b.y) * (c.y - b.y);
-			return cross < 0 || (cross == 0 && dot <= 0);
+		let offStep = 0.01;
+		let radius1 = par.internalRadius * effect;
+		let radius2 = par.externalRadius * effect;
+		let npoints = par.starPoints;
+
+		push();
+		angleMode(RADIANS);
+		let angle = TWO_PI / npoints;
+		let halfAngle = angle / 2.0;
+		for (let a = 0; a < TWO_PI; a += angle) {
+			noiseSeed(this.seed2);
+			let sx =
+				map(noise(this.starXOff, this.starYOff), 0, 1, -5, 5) +
+				x +
+				cos(a) * radius2;
+			// this.starXOff += offStep;
+			noiseSeed(this.seed3);
+			let sy =
+				map(noise(this.starXOff, this.starYOff), 0, 1, -5, 5) +
+				y +
+				sin(a) * radius2;
+			// this.starYOff += offStep;
+			newArr.push([sx, sy]);
+			sx = x + cos(a + halfAngle) * radius1;
+			sy = y + sin(a + halfAngle) * radius1;
+			newArr.push([sx, sy]);
 		}
-		points.sort(function (a, b) {
-			return a.x != b.x ? a.x - b.x : a.y - b.y;
-		});
-
-		var n = points.length;
-		var hull = [];
-
-		for (var i = 0; i < 2 * n; i++) {
-			var j = i < n ? i : 2 * n - 1 - i;
-			while (
-				hull.length >= 2 &&
-				removeMiddle(hull[hull.length - 2], hull[hull.length - 1], points[j])
-			)
-				hull.pop();
-			hull.push(points[j]);
-		}
-
-		hull.pop();
-		return hull;
+		pop();
+		return newArr;
 	}
 }
-
-/**
- * License for convexhull-js
- *
-
-The MIT License (MIT)
-
-Copyright (c) 2015 Andrey Naumenko
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/

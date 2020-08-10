@@ -4,13 +4,13 @@ function scene01() {
 		history1 = [];
 		resetRecVariables();
 		chooseScene('#scene-01');
-		canvas.parent('#canvas-01');
+		sketchCanvas.parent('#canvas-01');
 		resizeCanvas(820, 820);
 		// resize video for a larger preview this time
 		sample.size(627, 470);
 		sample.hide();
-		vf.parent('#webcam-monitor-01');
-		vf.show();
+		monitor.parent('#webcam-monitor-01');
+		monitor.show();
 		recButton = select('#record-button-01');
 		recButton.html('Record');
 		recButton.removeClass('primary');
@@ -38,14 +38,14 @@ function scene01() {
 
 	// --1draw
 	this.draw = function () {
-		vf.background(0);
+		monitor.background(0);
 		background('#f9f9f9');
 		translate(width, false);
 		scale(-1, 1);
 
 		if (sample) {
 			// vs is 500x470 but feed is 627x470
-			vf.image(sample, -50, 0);
+			monitor.image(sample, -50, 0);
 		}
 
 		if (poses) {
@@ -227,18 +227,18 @@ function previewSkeleton(pose) {
 			for (let j = 0; j < skeleton.length; j++) {
 				let partA = skeleton[j][0];
 				let partB = skeleton[j][1];
-				vf.push();
-				vf.translate(-50, 0);
-				vf.stroke('#AFEEEE');
-				vf.line(
+				monitor.push();
+				monitor.translate(-50, 0);
+				monitor.stroke('#AFEEEE');
+				monitor.line(
 					partA.position.x,
 					partA.position.y,
 					partB.position.x,
 					partB.position.y
 				);
-				vf.ellipse(partA.position.x, partA.position.y, 5);
-				vf.ellipse(partB.position.x, partB.position.y, 5);
-				vf.pop();
+				monitor.ellipse(partA.position.x, partA.position.y, 5);
+				monitor.ellipse(partB.position.x, partB.position.y, 5);
+				monitor.pop();
 			}
 		}
 	}
@@ -249,17 +249,17 @@ function playPreroll() {
 	if (preroll) {
 		let counter = floor(map(prerollCounter, 0, par.mississippi, 4, 0));
 		if (counter > 0) {
-			vf.push();
-			vf.translate(vf.width, 0);
-			vf.scale(-1, 1);
-			vf.noStroke();
-			vf.fill(0, 200);
-			vf.rect(0, 0, vf.width, vf.height);
-			vf.fill(255);
-			vf.textSize(180);
-			vf.textAlign(CENTER, CENTER);
-			vf.text(counter, vf.width / 2, vf.height / 2);
-			vf.pop();
+			monitor.push();
+			monitor.translate(monitor.width, 0);
+			monitor.scale(-1, 1);
+			monitor.noStroke();
+			monitor.fill(0, 200);
+			monitor.rect(0, 0, monitor.width, monitor.height);
+			monitor.fill(255);
+			monitor.textSize(180);
+			monitor.textAlign(CENTER, CENTER);
+			monitor.text(counter, monitor.width / 2, monitor.height / 2);
+			monitor.pop();
 			prerollCounter++;
 		} else {
 			startRecording();

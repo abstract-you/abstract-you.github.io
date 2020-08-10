@@ -2,7 +2,7 @@ class Paramaterize {
 	constructor() {
 		this.framesToRecord = 900; // 900 frames is about 15 seconds
 		this.mississippi = 240; // 240 frames is about 4 seconds
-		this.scene = 0;
+		this.scene = '0'
 		this.showHUD = false;
 		this.levelLow = -50;
 		this.levelHigh = 50;
@@ -75,9 +75,10 @@ class Paramaterize {
 
 par = new Paramaterize();
 let gui = new dat.GUI({ autoPlace: true });
-let sceneGui = gui.add(par, 'scene');
+let sceneGui = gui.add(par, 'scene',[0,1,2,3,4]);
 sceneGui.onChange(() => {
-	gotoScene();
+	console.log('sceneGui')
+	sceneRouter();
 });
 gui.add(par, 'debug')
 gui.add(par, 'showHUD');
@@ -110,4 +111,4 @@ gui.add(par, 'topSpeed');
 gui.add(par, 'maxAcc');
 gui.add(par, 'noseYOffset');
 gui.add(par, 'shapeStrokeWeight');
-gui.hide()
+gui.show()
