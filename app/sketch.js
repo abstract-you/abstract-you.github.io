@@ -4,6 +4,8 @@ let status;
 let sample;
 let webcamPreview;
 let button;
+let restartButton;
+let redoButton;
 let videoSample = 'assets/01.mp4';
 
 let sceneReady = false;
