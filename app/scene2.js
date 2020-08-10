@@ -8,17 +8,38 @@ function scene02() {
 		faceapiStandby = false;
 		faceapi.detect(gotFaces);
 		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
+		history2 = [];
 		resetRecVariables();
 		chooseScene('#scene-02');
 		canvas.parent('#canvas-02');
 		resizeCanvas(820, 820);
 		vf.parent('#webcam-monitor-02');
-		button = select('#record-button-02');
-		button.removeClass('primary');
-		button.html('Record');
-		button.mousePressed(() => {
+
+
+		recButton = select('#record-button-02');
+		recButton.html('Record');
+		recButton.removeClass('primary');
+		recButton.removeClass('rec');
+		recButton.removeClass('preroll');
+		recButton.mousePressed(() => {
 			noPreroll();
 		});
+		recButton.show();
+		counterButton = select('#counter-02');
+		counterButton.show();
+		redoButton = select('#redo-02');
+		redoButton.mousePressed(() => {
+			mgr.showScene(scene02);
+		});
+		redoButton.hide();
+		nextButton = select('#next-button-02');
+		nextButton.mousePressed(() => {
+			mgr.showScene(scene03);
+		});
+		select('#next-button-03').mousePressed(()=>{
+			mgr.showScene(scene03)
+		})
+		nextButton.hide();
 	};
 
 	// --draw
@@ -37,10 +58,7 @@ function scene02() {
 				playLiveShape2(history1);
 			} else if (full && history2[0]) {
 				// Play the recording	from this step (using the logic from the next step)
-				playHistoryShape2(
-					history1,
-					analyzeExpressionHistory(expressionAggregate)
-				);
+				playHistoryShape2(history1, analyzeExpressionHistory(history2));
 				// playShape3(history2);
 			} else if (par.useSamplePose) {
 				// Play a prerecorded pose
@@ -63,7 +81,7 @@ function playLiveShape2(history) {
 
 function drawLiveShape2(points) {
 	let shapeType = getShapeType();
-	if (rec && detections[0]) recordExpression(points, shapeType);
+	if (rec && detections[0]) recordExpression(shapeType);
 
 	retargetAnchorsFromPose(points);
 
@@ -84,12 +102,10 @@ function drawLiveShape2(points) {
 		pop();
 	}
 
-
-
 	if (shapeType === 'softer') {
-	hullSet = hull(expanded, par.roundnessSofter);
+		hullSet = hull(expanded, par.roundnessSofter);
 	} else {
-	hullSet = hull(expanded, par.roundnessSharper);
+		hullSet = hull(expanded, par.roundnessSharper);
 	}
 	let padded = [];
 
@@ -106,11 +122,11 @@ function drawLiveShape2(points) {
 	noFill();
 	beginShape();
 	padded.forEach(p => {
-	if (shapeType === 'softer') {
+		if (shapeType === 'softer') {
 			curveVertex(p[0], p[1]);
-	} else {
+		} else {
 			vertex(p[0], p[1]);
-	}
+		}
 	});
 
 	endShape(CLOSE);
@@ -135,9 +151,9 @@ function drawHistoryShape2(history, shapeType) {
 	}
 
 	if (shapeType === 'softer') {
-	hullSet = hull(expanded, par.roundnessSofter);
-} else {
-	hullSet = hull(expanded, par.roundnessSharper);
+		hullSet = hull(expanded, par.roundnessSofter);
+	} else {
+		hullSet = hull(expanded, par.roundnessSharper);
 	}
 
 	let padded = [];
@@ -155,11 +171,11 @@ function drawHistoryShape2(history, shapeType) {
 	noFill();
 	beginShape();
 	padded.forEach(p => {
-	if (shapeType === 'softer') {
+		if (shapeType === 'softer') {
 			curveVertex(p[0], p[1]);
-	} else {
+		} else {
 			vertex(p[0], p[1]);
-	}
+		}
 	});
 
 	endShape(CLOSE);
@@ -280,7 +296,7 @@ function softerBody(pose) {
 	pose.forEach((p, i) => {
 		switch (p.part) {
 			case 'nose':
-				let tempNose = {}
+				let tempNose = {};
 				newArr = newArr.concat(expandBlob(p, 1, 10, 100));
 				break;
 			case 'leftEar':
@@ -412,9 +428,8 @@ function topExpression(unsorted) {
 	return sorted[0][0];
 }
 
-function recordExpression(hist, typ) {
-	history2.push(hist);
-	expressionAggregate.push(typ);
+function recordExpression(typ) {
+	history2.push(typ);
 	setCounter(par.framesToRecord - history2.length);
 	if (history2.length === par.framesToRecord) finishRecording();
 }
@@ -423,16 +438,18 @@ function recordExpression(hist, typ) {
 function analyzeExpressionHistory(exps) {
 	let softer = 0;
 	let sharper = 0;
-	exps.forEach(ex => {
-		switch (ex) {
-			case 'softer':
-				softer++;
-				break;
-			case 'sharper':
-				sharper++;
-				break;
-		}
-	});
+	if (exps[0]) {
+		exps.forEach(ex => {
+			switch (ex) {
+				case 'softer':
+					softer++;
+					break;
+				case 'sharper':
+					sharper++;
+					break;
+			}
+		});
+	}
 	if (softer > sharper) {
 		return 'softer';
 	} else {

@@ -3,9 +3,13 @@ let canvas, vf;
 let status;
 let sample;
 let webcamPreview;
-let button;
+let recButton;
+let nextButton;
 let restartButton;
 let redoButton;
+let counterButton;
+
+let finalShapeType;
 let videoSample = 'assets/01.mp4';
 
 let sceneReady = false;
@@ -19,27 +23,10 @@ let prerollCounter = 0;
 let posenet;
 let poses = [];
 
-/*
-Stores recording from step 1 as array of posenet poses
-[ 
-	{ part: 'nose', position: { x: 1, y: 1 } },
-	...
-] 
-*/
 let history1 = [];
-
-/*
- */
 let history2 = [];
-
 let history3 = [];
 
-/*
-Used separately to choose the final expression
-*/
-let expressionAggregate = [];
-
-let voiceHistory = [];
 let options = { maxPoseDetections: 1 };
 
 let micLevel;
@@ -158,6 +145,7 @@ function setup() {
 	select('#begin-button').mousePressed(() => {
 		mgr.showScene(scene01);
 	});
+
 
 	// Prepare a dedicated anchor for the intro screen
 	noseAnchor = new Anchor(width / 2, height / 2);
@@ -403,22 +391,22 @@ function makePointSet(vArr) {
 
 function startPreroll() {
 	preroll = true;
-	button.addClass('preroll');
-	button.html('...');
-	button.mousePressed(finishRecording);
+	recButton.addClass('preroll');
+	recButton.html('...');
+	recButton.mousePressed(finishRecording);
 }
 
 function cancelRecording() {
 	resetRecVariables();
-	button.removeClass('preroll');
-	button.removeClass('rec');
-	button.html('Record');
+	recButton.removeClass('preroll');
+	recButton.removeClass('rec');
+	recButton.html('Record');
 	if (mgr.isCurrent(scene01)) {
-		button.mousePressed(() => {
+		recButton.mousePressed(() => {
 			startPreroll();
 		});
 	} else {
-		button.mousePressed(() => {
+		recButton.mousePressed(() => {
 			noPreroll();
 		});
 	}
@@ -432,16 +420,16 @@ function startRecording() {
 	preroll = false;
 	prerollCounter = 0;
 	rec = true;
-	button.addClass('rec');
-	button.html('Stop');
-	button.mousePressed(finishRecording);
+	recButton.addClass('rec');
+	recButton.html('Stop');
+	recButton.mousePressed(finishRecording);
 }
 
 function setCounter(count) {
 	// Easier than trying to figure out which counter is shown...
 	let counters = selectAll('.counter');
 	counters.forEach(counter => {
-		counter.html(count);
+		// counter.html(count);
 	});
 }
 
@@ -449,17 +437,10 @@ function finishRecording() {
 	// TODO localStorage?
 	rec = false;
 	full = true;
-	play = true;
-	button.removeClass('rec');
-	button.addClass('primary');
-	button.html('Next');
-	button.mousePressed(() => {
-		mgr.showNextScene();
-	});
-	let counters = selectAll('.counter');
-	counters.forEach(counter => {
-		counter.html('000');
-	});
+	recButton.hide()
+	nextButton.show()
+	counterButton.hide();
+	redoButton.show();
 }
 
 function deriveProportions(pose) {

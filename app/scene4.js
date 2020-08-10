@@ -9,11 +9,12 @@ function scene04() {
 		resetRecVariables();
 		select('body').addClass('light');
 
+		finalShapeType = analyzeExpressionHistory(history2);
 		chooseScene('#scene-04');
 		resizeCanvas(820, 820);
 		canvas.parent('#canvas-04');
-		button = select('#save-button');
-		button.hide();
+		recButton = select('#save-button');
+		recButton.hide();
 		restartButton = select('#restart-button');
 		restartButton.mousePressed(refreshPage);
 	};
@@ -22,7 +23,8 @@ function scene04() {
 	this.draw = function () {
 		background('#f9f9f9');
 		mirror();
-		playHistoryShape3(voiceHistory);
+		playHistoryShape3(history3);
+		playHistoryShape3(history3, finalShapeType);
 		if (par.frameRate) fps();
 	};
 }

@@ -1,7 +1,9 @@
 class Paramaterize {
 	constructor() {
+		this.framesToRecord = 900; // 900 frames is about 15 seconds
+		this.mississippi = 240; // 240 frames is about 4 seconds
 		this.scene = 0;
-		this.showHUD = true;
+		this.showHUD = false;
 		this.levelLow = -50;
 		this.levelHigh = 50;
 		this.effect = 1;
@@ -13,9 +15,7 @@ class Paramaterize {
 		this.minSoundLevel = 300;
 		this.maxSoundLevel = -550;
 		this.voiceScaleModifier = 1;
-		this.framesToRecord = 900; // 900 frames is about 15 seconds
 		this.shapeStrokeWeight = 3.5;
-		this.mississippi = 240; // 240 frames is about 4 seconds
 		this.roundnessSharper = 80;
 		this.roundnessSofter = 120;
 		this.roundness1 = 150;

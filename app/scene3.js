@@ -1,6 +1,7 @@
 function scene03() {
 	// --enter
 	this.enter = function () {
+		console.log('entering scene 03')
 		if (posenet) {
 			posenet.removeAllListeners();
 			poses = null;
@@ -9,24 +10,42 @@ function scene03() {
 		startMic();
 		vf.hide();
 
+		finalShapeType = analyzeExpressionHistory(history2);
+
 		resetRecVariables();
+		history3 = [];
+
 		chooseScene('#scene-03');
-		resizeCanvas(820, 820);
 		canvas.parent('#canvas-03');
-		button = select('#record-button-03');
-		button.removeClass('primary');
-		button.html('Record');
-		button.mousePressed(() => {
+		resizeCanvas(820, 820);
+
+		recButton = select('#record-button-03');
+		recButton.html('Record');
+		recButton.removeClass('primary');
+		recButton.removeClass('rec');
+		recButton.removeClass('preroll');
+		recButton.mousePressed(() => {
 			noPreroll();
 		});
-		if (sample) sample.hide();
+		recButton.show();
+		counterButton = select('#counter-03');
+		counterButton.show();
+		redoButton = select('#redo-03');
+		redoButton.mousePressed(() => {
+			mgr.showScene(scene03);
+		});
+		redoButton.hide();
+		nextButton = select('#next-button-03');
+		nextButton.mousePressed(() => {
+			mgr.showScene(scene04);
+		});
+		nextButton.hide();
 	};
 
 	// --3draw
 
 	this.draw = function () {
-		micLevel = mic.getLevel()
-		let shapeStyle = analyzeExpressionHistory(expressionAggregate)
+		micLevel = mic.getLevel();
 
 		background('#f9f9f9');
 
@@ -34,9 +53,9 @@ function scene03() {
 		mirror(); // Mirror canvas to match mirrored video
 
 		if (!full) {
-			playLiveShape3(history2, shapeStyle, micLevel);
+			playLiveShape3(history1, finalShapeType, micLevel);
 		}
-		if (full) playHistoryShape3(voiceHistory);
+		if (full) playHistoryShape3(history3, finalShapeType);
 		if (par.frameRate) fps();
 	};
 }
@@ -61,12 +80,13 @@ function voiceNet(points, level) {
 }
 
 function recordVoice(history) {
-	voiceHistory.push(history);
-	setCounter(par.framesToRecord - voiceHistory.length);
-	if (voiceHistory.length === par.framesToRecord) finishRecording();
+	history3.push(history);
+	setCounter(par.framesToRecord - history3.length);
+	if (history3.length === par.framesToRecord) finishRecording();
 }
 
 function playLiveShape3(history, type, level) {
+	// console.log('playLiveShape3',history,type,level)
 	if (!history[0]) {
 		history = samplePose;
 	}
@@ -75,14 +95,16 @@ function playLiveShape3(history, type, level) {
 }
 
 function drawLiveShape3(history, type, level) {
+	// console.log('drawLiveShape3', history, type, level);
 	let scale = map(level, 0, 1, par.minSoundLevel, par.maxSoundLevel);
 	retargetAnchorsFromPose(history);
 	if (type === 'softer') {
 		expanded = softerBody(anchors);
+		hullSet = hull(expanded, par.roundnessSofter);
 	} else {
 		expanded = sharperBody(anchors);
+		hullSet = hull(expanded, par.roundnessSharper);
 	}
-	hullSet = hull(expanded, par.roundness3);
 
 	let padded = [];
 
@@ -101,7 +123,7 @@ function drawLiveShape3(history, type, level) {
 	noFill();
 	beginShape();
 	padded.forEach(p => {
-		if (par.showCurves) {
+		if (type === 'softer') {
 			curveVertex(p[0], p[1]);
 		} else {
 			vertex(p[0], p[1]);
@@ -112,19 +134,19 @@ function drawLiveShape3(history, type, level) {
 	pop();
 }
 
-function playHistoryShape3(history) {
+function playHistoryShape3(history, type) {
 	let cp = frameCount % history.length;
-	drawHistoryShape3(history[cp]);
+	drawHistoryShape3(history[cp], type);
 }
 
-function drawHistoryShape3(history) {
+function drawHistoryShape3(history, type) {
 	push();
 	stroke(0);
 	strokeWeight(par.shapeStrokeWeight);
 	noFill();
 	beginShape();
 	history.forEach(p => {
-		if (par.showCurves) {
+		if (type === 'softer') {
 			curveVertex(p[0], p[1]);
 		} else {
 			vertex(p[0], p[1]);

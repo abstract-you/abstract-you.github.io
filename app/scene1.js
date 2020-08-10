@@ -1,6 +1,7 @@
 function scene01() {
 	this.enter = function () {
 		noseAnchor = '';
+		history1 = [];
 		resetRecVariables();
 		chooseScene('#scene-01');
 		canvas.parent('#canvas-01');
@@ -10,10 +11,27 @@ function scene01() {
 		sample.hide();
 		vf.parent('#webcam-monitor-01');
 		vf.show();
-		button = select('#record-button-01');
-		button.mousePressed(() => {
+		recButton = select('#record-button-01');
+		recButton.html('Record');
+		recButton.removeClass('primary');
+		recButton.removeClass('rec');
+		recButton.removeClass('preroll');
+		recButton.mousePressed(() => {
 			startPreroll();
 		});
+		recButton.show();
+		counterButton = select('#counter-01');
+		counterButton.show();
+		redoButton = select('#redo-01');
+		redoButton.mousePressed(() => {
+			mgr.showScene(scene01);
+		});
+		redoButton.hide();
+		nextButton = select('#next-button-01');
+		nextButton.mousePressed(() => {
+			mgr.showScene(scene02);
+		});
+		nextButton.hide();
 	};
 
 	this.setup = function () {};
@@ -34,21 +52,8 @@ function scene01() {
 			if (poses[0]) {
 				let pose = poses[0].pose.keypoints;
 
-				// Draw skeleton in vf
 				if (!preroll && par.showHUD) previewSkeleton(poses[0]);
 
-				// Draw pose for reference
-				// if (par.showPose) {
-				// 	push();
-				// 	stroke('red');
-				// 	strokeWeight(10);
-				// 	pose.forEach(p => {
-				// 		point(p.position.x, p.position.y);
-				// 	});
-				// 	pop();
-				// }
-
-				// Draw expanded points for reference
 				if (par.showExpanded) {
 					push();
 					stroke('paleturquoise');
@@ -69,7 +74,7 @@ function scene01() {
 
 		playPreroll();
 
-		if (play && !preroll) playShape(history1);
+		if (full && !preroll && history1[0]) playShape(history1);
 		if (par.frameRate) fps();
 	};
 }
@@ -80,9 +85,7 @@ function playShape(history) {
 	drawShape(history[cp]);
 }
 
-// Draws an outline based on posenet keypoints
 function drawShape(points) {
-	// console.log('drawShape',points)
 	retargetAnchorsFromPose(points);
 	expanded = bodyNet(anchors);
 	hullSet = hull(expanded, par.roundness1);
@@ -115,34 +118,23 @@ function drawShape(points) {
 
 function bodyNet(pose) {
 	let newArr = [];
-
-	// We'll use these later for the torso
 	let l1, l2, r1, r2;
-
-	// expandEllipse(point, 50, 50, 52)
-	//
-	// The first argument is the point to expand
-	// The next two arguments are the minimum and maximum radius for the circle
-	// (by default both are 50 so the size is fixed. If there's a range, it will
-	// slowly move between the two extremes at random)
-	// The last argument is the distance between each point in angles
-	// (for example, an angle distance of 1 will add 360 points)
 
 	pose.forEach((p, i) => {
 		switch (p.part) {
 			case 'nose':
-				newArr = newArr.concat(expandEllipse(p, 80,95,20));
+				newArr = newArr.concat(expandEllipse(p, 80, 95, 20));
 				break;
 			case 'leftEar':
 			case 'rightEar':
-				newArr = newArr.concat(expandEllipse(p, 20,35));
+				newArr = newArr.concat(expandEllipse(p, 20, 35));
 				break;
 			case 'leftEye':
 			case 'rightEye':
 				break;
 			case 'leftShoulder':
 				l1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandEllipse(p, 20,35));
+				newArr = newArr.concat(expandEllipse(p, 20, 35));
 				break;
 			case 'rightShoulder':
 				r1 = createVector(p.position.x, p.position.y);
@@ -186,12 +178,6 @@ function bodyNet(pose) {
 	newArr = newArr.concat(expandEllipseXY(middle2.x, middle2.y, 50, 50, 54));
 
 	return newArr;
-}
-
-function recordPose(points) {
-	history1.push(points);
-	setCounter(par.framesToRecord - history1.length);
-	if (history1.length === par.framesToRecord) finishRecording();
 }
 
 function expandEllipseXY(px, py, minr, maxr, angles) {
@@ -279,4 +265,10 @@ function playPreroll() {
 			startRecording();
 		}
 	}
+}
+
+function recordPose(points) {
+	history1.push(points);
+	setCounter(par.framesToRecord - history1.length);
+	if (history1.length === par.framesToRecord) finishRecording();
 }

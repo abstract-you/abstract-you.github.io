@@ -31,10 +31,11 @@ body {
 
 body.light {
 	background-color: var(--primary);
-	color: var(--dark)
+	color: var(--dark);
 }
 
-body,button {
+body,
+button {
 	font-family: 'Space Mono', monospace;
 }
 
@@ -83,7 +84,7 @@ canvas {
 
 .directions {
 	background-color: var(--dark);
-	color: var(--secondary)
+	color: var(--secondary);
 }
 
 /* ==Layout  **************************************************** */
@@ -174,11 +175,11 @@ button.counter {
 		'controls controls controls';
 }
 
- #scene-00 .webcam-monitor-container video {
+#scene-00 .webcam-monitor-container video {
 	border-radius: 10px;
 	transform: scaleX(-1);
 	object-fit: cover;
-} 
+}
 
 #scene-00 .webcam-monitor-container {
 	height: 100%;
@@ -187,7 +188,6 @@ button.counter {
 #scene-00 .webcam-monitor-container div {
 	height: 100%;
 }
-
 
 #scene-00 .sidebar {
 	grid-area: sidebar;
@@ -228,15 +228,16 @@ button.counter {
 }
 
 #scene-03 .webcam-monitor-container p {
-margin-bottom: 1em;
-font-family: 'Lora', serif !important;
-font-size: 20px;
-letter-spacing: 0.5px;
-line-height: 30px;
-
+	margin-bottom: 1em;
+	font-family: 'Lora', serif !important;
+	font-size: 20px;
+	letter-spacing: 0.5px;
+	line-height: 30px;
 }
 
-#webcam-monitor-03 {display: none;}
+#webcam-monitor-03 {
+	display: none;
+}
 #scene-04 .controls {
 	display: flex;
 	flex-direction: column;
@@ -255,7 +256,7 @@ line-height: 30px;
 	border-color: var(--primary);
 }
 .light button.secondary:hover {
-	border-color: var(--black)
+	border-color: var(--black);
 }
 
 /* ==Helpers ************************************************* */
@@ -306,6 +307,19 @@ button.primary:hover,
 	color: var(--dark) !important;
 }
 
+.redo-button {
+	background-color: var(--black);
+	border-color: var(--black);
+}
+.redo-button:hover {
+	background-color: var(--dark);
+	border-color: var(--dark);
+}
+.redo-button.disabled:hover {
+	background-color: var(--dark);
+	border-color: var(--dark);
+}
+
 /* ==Utilities  ************************************************* */
 /* ************************************************************** */
 .rec,
@@ -315,16 +329,14 @@ button.rec:hover,
 	color: var(--primary);
 }
 .disabled,
-button.disabled:hover,
 .btn.disabled:hover {
-	background-color: var(--black);
-	color: var(--tertiary);
+	background-color: var(--black) !important;
+	color: var(--tertiary) !important;
 	border-color: var(--black);
 }
 
 button.rec:hover,
 .btn.rec:hover {
-	
 }
 .hidden {
 	display: none !important;
@@ -348,9 +360,8 @@ strong {
 	font-style: italic;
 }
 .light strong {
-	color: black
+	color: black;
 }
-
 
 .nolist {
 	list-style: none;
@@ -402,7 +413,6 @@ table th {
 	text-align: left;
 	padding-right: 2rem;
 }
-
 
 header div,
 header h1 {
