@@ -52,7 +52,7 @@ function scene01() {
 			if (poses[0]) {
 				let pose = poses[0].pose.keypoints;
 
-				if (!preroll && par.showHUD) previewSkeleton(poses[0]);
+				if (!preroll) previewSkeleton(poses[0]);
 
 				if (par.showExpanded) {
 					push();

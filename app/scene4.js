@@ -10,6 +10,8 @@ function scene04() {
 		select('body').addClass('light');
 
 		finalShapeType = analyzeExpressionHistory(history2);
+		console.log(finalShapeType)
+
 		chooseScene('#scene-04');
 		resizeCanvas(820, 820);
 		canvas.parent('#canvas-04');
@@ -23,7 +25,7 @@ function scene04() {
 	this.draw = function () {
 		background('#f9f9f9');
 		mirror();
-		playHistoryShape3(history3);
+		// playHistoryShape3(history3);
 		playHistoryShape3(history3, finalShapeType);
 		if (par.frameRate) fps();
 	};
