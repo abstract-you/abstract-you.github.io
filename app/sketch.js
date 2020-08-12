@@ -33,6 +33,8 @@ let sketchCanvas;
 let monitor;
 // webcam video feed
 let sample;
+// let sampleWidth;
+// let sampleHeight;
 
 let phase = 0.0;
 let zoff = 0.0;
@@ -93,32 +95,29 @@ let micLevel;
 let spectrum;
 let ampl;
 
-// anchors with a basic physics engine to build shape around
+// anchors with a basic physics engine to build the shape around
+// the anchors object stores anchors keyed by part name
+// TODO: do we still need the name in the anchor itself?
+let anchors = {
+	nose: '',
+	leftEye: '',
+	rightEye: '',
+	leftEar: '',
+	rightEar: '',
+	leftShoulder: '',
+	rightShoulder: '',
+	leftElbow: '',
+	rightElbow: '',
+	leftWrist: '',
+	rightWrist: '',
+	leftHip: '',
+	rightHip: '',
+	leftKnee: '',
+	rightKnee: '',
+	leftAnkle: '',
+	rightAnkle: '',
+};
 let noseAnchor;
-let anchors = [];
-// let expanded = [];
-// let hullSet = [];
-
-// Used for assinging anchors to specific parts
-const PARTS = [
-	'nose',
-	'leftEye',
-	'rightEye',
-	'leftEar',
-	'rightEar',
-	'leftShoulder',
-	'rightShoulder',
-	'leftElbow',
-	'rightElbow',
-	'leftWrist',
-	'rightWrist',
-	'leftHip',
-	'rightHip',
-	'leftKnee',
-	'rightKnee',
-	'leftAnkle',
-	'rightAnkle',
-];
 
 // TODO: use to build a skeleton when posenet doesn't provide one
 // (TODO: is there a setting to tweak in posenet to fix that?)
@@ -137,30 +136,32 @@ const SKELETON = [
 	[11, 12],
 ];
 
-// makes the code for deriving ratios easier to read
+// makes it easier to read the code for calling specific parts
 const NOSE = 0;
-const LEFTEYE = 1;
-const RIGHTEYE = 2;
-const LEFTEAR = 3;
-const RIGHTEAR = 4;
-const LEFTSHOULDER = 5;
-const RIGHTSHOULDER = 6;
-const LEFTELBOW = 7;
-const RIGHTELBOW = 8;
-const LEFTWRIST = 9;
-const RIGHTWRIST = 10;
-const LEFTHIP = 11;
-const RIGHTHIP = 12;
-const LEFTKNEE = 13;
-const RIGHTKNEE = 14;
-const LEFTANKLE = 15;
-const RIGHTANKLE = 16;
+const LEYE = 1;
+const REYE = 2;
+const LEAR = 3;
+const REAR = 4;
+const LSHOULDER = 5;
+const RSHOULDER = 6;
+const LELBOW = 7;
+const RELBOW = 8;
+const LWRIST = 9;
+const RWRIST = 10;
+const LHIP = 11;
+const RHIP = 12;
+const LKNEE = 13;
+const RKNEE = 14;
+const LANKLE = 15;
+const RANKLE = 16;
 
 p5.disableFriendlyErrors = true;
 
 function setup() {
 	// required for making audio work for the microphone (in scene3)
 	getAudioContext().suspend();
+	// ----- dat.gui
+	// ----- scenemanager
 	mgr = new SceneManager();
 	mgr.addScene(scene00);
 	mgr.addScene(scene01);
@@ -180,9 +181,9 @@ function setup() {
 	// start getting faceapi ready
 	if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
 	// Prepare anchors to chase posenet points
-	PARTS.forEach(partName => {
+	Object.keys(anchors).forEach(partName => {
 		let anchor = new Anchor(width / 2, height / 2, partName);
-		anchors.push(anchor);
+		anchors[partName] = anchor;
 	});
 	// Prepare a dedicated anchor for the intro screen
 	noseAnchor = new Anchor(width / 2, height / 2);
@@ -239,6 +240,8 @@ function startWebcam() {
 }
 
 function webcamReady() {
+	sampleWidth = sample.width;
+	sampleHeight = sample.height;
 	posenet = ml5.poseNet(sample, posenetOptions, modelReady);
 	posenet.on('pose', function (results) {
 		poses = results;
@@ -277,8 +280,8 @@ function scene00() {
 		sketchCanvas.parent('#canvas-00');
 		// move the webcam monitor over
 		sample.parent('#webcam-monitor-00');
-		// resize video to fit previe frame
-		sample.size(467, 350);
+		// resize video to fit preview frame
+		// sample.size(467, 350);
 	};
 
 	// --0draw
@@ -330,72 +333,23 @@ function scene00() {
 	};
 }
 
-function refreshAnchors() {
-	anchors.forEach(a => {
-		a.behaviors();
-		a.update();
-		if (par.showAnchors) a.show();
-	});
-}
 
-// Takes an array of posenet keypoints
-// What happens if this array also has epxression data at index [17]?
-function retargetAnchorsFromPose(targets) {
-	// TODO: mark anchors, text or color or something
-	anchors.forEach((a, i) => {
-		if (targets[i]) {
-			let v = createVector(targets[i].position.x, targets[i].position.y);
-			a.setTarget(v);
-		} else {
-			let v = createVector(targets[0].position.x, targets[0].position.y);
-			a.setTarget(v);
-		}
-		a.behaviors();
-		a.update();
-		if (par.showAnchors) a.show();
-	});
-}
+// // Gets a posenet pose and returns distance between two points
+// function poseDist(pose, a, b) {
+// 	let left = createVector(pose[a].position.x, pose[a].position.y);
+// 	let right = createVector(pose[b].position.x, pose[b].position.y);
+// 	return p5.Vector.dist(left, right);
+// }
 
-function retargetAnchorsFromPoints(targets) {
-	// console.log('retargetAnchorsFromPoints',targets)
-	anchors.forEach((a, i) => {
-		if (targets[i]) {
-			let v = createVector(targets[i][0], targets[i][1]);
-			a.setTarget(v);
-		} else {
-			let v = createVector(targets[0][0], targets[0][1]);
-			a.setTarget(v);
-		}
-		a.behaviors();
-		a.update();
-		if (par.showAnchors) a.show();
-	});
-}
+// // Gets a posenet pose and returns eye distance
+// function checkEyeDist(pose) {
+// 	// Pose will look like [{part:'nose',position: {x: 0,y:0},score:.99}]
+// 	// 1	leftEye, 2	rightEye
+// 	let left = createVector(pose[1].position.x, pose[1].position.y);
+// 	let right = createVector(pose[2].position.x, pose[2].position.y);
+// 	return p5.Vector.dist(left, right);
+// }
 
-// Gets a posenet pose and returns distance between two points
-function poseDist(pose, a, b) {
-	let left = createVector(pose[a].position.x, pose[a].position.y);
-	let right = createVector(pose[b].position.x, pose[b].position.y);
-	return p5.Vector.dist(left, right);
-}
-
-// Gets a posenet pose and returns eye distance
-function checkEyeDist(pose) {
-	// Pose will look like [{part:'nose',position: {x: 0,y:0},score:.99}]
-	// 1	leftEye, 2	rightEye
-	let left = createVector(pose[1].position.x, pose[1].position.y);
-	let right = createVector(pose[2].position.x, pose[2].position.y);
-	return p5.Vector.dist(left, right);
-}
-
-// Gets a posenet pose and returns eye-should ratio
-function checkEyeShoulderRatio() {
-	// Pose will look like [{part:'nose',position: {x: 0,y:0},score:.99}]
-	//  1	leftEye
-	//  2	rightEye
-	//  5	leftShoulder
-	//  6	rightShoulder
-}
 
 function drawAbstractShape() {
 	if (par.fillShape) {
@@ -418,15 +372,6 @@ function drawAbstractShape() {
 	endShape(CLOSE);
 }
 
-function makePointSet(vArr) {
-	let set = [];
-	vArr.forEach(v => {
-		let pt = [v.x, v.y];
-		set.push(pt);
-	});
-	return set;
-}
-
 function startPreroll() {
 	preroll = true;
 	recButton.addClass('rec');
@@ -434,20 +379,21 @@ function startPreroll() {
 	recButton.mousePressed(finishRecording);
 }
 
-function cancelRecording() {
-	resetRecVariables();
-	recButton.removeClass('rec');
-	recButton.html('Record');
-	if (mgr.isCurrent(scene01)) {
-		recButton.mousePressed(() => {
-			startPreroll();
-		});
-	} else {
-		recButton.mousePressed(() => {
-			noPreroll();
-		});
-	}
-}
+// TODO: make sure cancel still works though...
+// function cancelRecording() {
+// 	resetRecVariables();
+// 	recButton.removeClass('rec');
+// 	recButton.html('Record');
+// 	if (mgr.isCurrent(scene01)) {
+// 		recButton.mousePressed(() => {
+// 			startPreroll();
+// 		});
+// 	} else {
+// 		recButton.mousePressed(() => {
+// 			noPreroll();
+// 		});
+// 	}
+// }
 
 function noPreroll() {
 	startRecording();
@@ -462,12 +408,9 @@ function startRecording() {
 	recButton.mousePressed(finishRecording);
 }
 
-function setCounter(count) {
-	// Easier than trying to figure out which counter is shown...
-	let counters = selectAll('.counter');
-	counters.forEach(counter => {
-		// counter.html(count);
-	});
+function updateCounter(remainingFrames) {
+	let secs = floor(remainingFrames/60)
+	counterButton.html('00:'+secs)
 }
 
 function finishRecording() {
@@ -484,9 +427,9 @@ function finishRecording() {
 // the readings are impacted by dozens of other factors before
 // the actual body proprortions show through
 function deriveProportions(pose) {
-	eyeDist = floor(poseDist(pose, LEFTEYE, RIGHTEYE));
-	shoulderDist = floor(poseDist(pose, LEFTSHOULDER, RIGHTSHOULDER));
-	hipDist = floor(poseDist(pose, LEFTHIP, RIGHTHIP));
+	// eyeDist = floor(poseDist(pose, LEFTEYE, RIGHTEYE));
+	// shoulderDist = floor(poseDist(pose, LEFTSHOULDER, RIGHTSHOULDER));
+	// hipDist = floor(poseDist(pose, LEFTHIP, RIGHTHIP));
 }
 
 function mirror(obj = sketchCanvas) {
@@ -494,12 +437,6 @@ function mirror(obj = sketchCanvas) {
 	obj.scale(-1, 1);
 }
 
-function updateAnchors() {
-	anchors.forEach(a => {
-		a.topSpeed = par.topSpeed;
-		a.maxForce = par.maxAcc;
-	});
-}
 
 // Hides everything and then shows the desired scene
 function chooseScene(sceneId) {
@@ -520,21 +457,12 @@ function fps() {
 	pop();
 }
 
-// Call this when entering a scene to reset variables that hold record state
-function resetRecVariables() {
-	if (par.debug) console.log('Resetting play heads');
-	full = false;
-	rec = false;
-	preroll = false;
-	play = false;
-	phase = 0.0;
-}
-
+// useful for setting up tests
 function getNewVideo(loc) {
 	sample = createVideo(loc, videoReady);
 	sample.volume(0);
 	sample.loop();
-	sample.size(627, 470);
+	// sample.size(627, 470);
 	sample.hide();
 }
 
@@ -547,18 +475,6 @@ function videoReady() {
 	});
 }
 
-function remap(point, range, dim, padding) {
-	// console.log('remap',point, range, dim, padding)
-	return map(point, 0, range, padding, dim - padding);
-}
-
-// remapPosenet(p, sample.width, sample.height, width, height, par.padding),
-function remapPosenetToArray(point, rWidth, rHeight, cWidth, cHeight, padding) {
-	// console.log('remapPosenetToArray',point, rWidth, rHeight, cWidth, cHeight, padding)
-	let newX = map(point.position.x, 0, rWidth, padding, cWidth - padding);
-	let newY = map(point.position.y, 0, rHeight, padding, cHeight - padding);
-	return [newX, newY];
-}
 
 function drawRef(points, color, weight) {
 	push();
@@ -568,4 +484,28 @@ function drawRef(points, color, weight) {
 		point(p[0], p[1]);
 	});
 	pop();
+}
+
+function dbg(message) {
+	if (par.debug) console.log(message);
+}
+
+// remaps points from the sample dimensions to the canvas dimensions
+// applies padding, which also centers and scales the shape
+function remapFromPose(pointArr) {
+	let sampleWidth = sample.width ? sample.width : 640;
+	let sampleHeight = sample.height ? sample.height : 480;
+	let padding = par.padding ? par.padding : 50;
+	let remapped = pointArr.map(point => {
+		return [
+			remap(point[0],sampleWidth,width,padding),
+			remap(point[1],sampleHeight,height,padding)
+		];
+	});
+	return remapped;
+}
+
+// remaps a single number 
+function remap(point, range, target, padding) {
+	return map(point, 0, range, padding, target - padding);
 }

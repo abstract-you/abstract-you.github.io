@@ -6,7 +6,11 @@ function scene04() {
 			poses = null;
 		}
 		faceapiStandby = true;
-		resetRecVariables();
+	full = false;
+	rec = false;
+	preroll = false;
+	play = false;
+	phase = 0.0;	
 		select('body').addClass('light');
 
 		finalShapeType = analyzeExpressionHistory(history2);

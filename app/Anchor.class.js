@@ -10,6 +10,8 @@ class Anchor {
 		this.phase = 0.0;
 		this.starXOff = 0.0;
 		this.starYOff = 0.0;
+		this.ellipseXOff = 0.0;
+		this.ellipseYOff = 0.0;
 		this.seed1 = random(1000);
 		this.seed2 = random(1000);
 		this.seed3 = random(1000);
@@ -24,22 +26,13 @@ class Anchor {
 	}
 
 	show() {
+		// Probably a very bad idea...
+		let x = remap(this.position.x, sampleWidth, width, par.padding);
+		let y = remap(this.position.y, sampleHeight, height, par.padding);
 		push();
 		noStroke();
-		fill('red');
-		let localRadius;
-		if (
-			this.part[0] === 'leftEye' ||
-			this.part[0] === 'rightEye' ||
-			this.part[0] === 'nose' ||
-			this.part[0] === 'leftEar' ||
-			this.part[0] === 'rightEar'
-		) {
-			localRadius = this.referenceShapeRadius;
-		} else {
-			localRadius = this.referenceShapeRadius * 0.8;
-		}
-		ellipse(this.position.x, this.position.y, localRadius);
+		fill('pink');
+		ellipse(x, y, par.referenceAnchorRadius);
 		pop();
 	}
 
@@ -95,6 +88,30 @@ class Anchor {
 		return steer.limit(par.maxAcc);
 	}
 
+	ellipsify(modifier = 1) {
+		let inc = par.ellipseIncrement ? par.ellipseIncrement : 30;
+		let px = this.position.x;
+		let py = this.position.y;
+		let x, y;
+		let newArr = [];
+		for (let a = 0; a < 360; a += inc) {
+			let r =
+				map(
+					noise(this.ellipseXOff, this.ellipseYOff),
+					0,
+					1,
+					par.ellipseMinRadius,
+					par.ellipseMaxRadius
+				) * modifier;
+			x = px + r * cos(a);
+			y = py + r * sin(a);
+			newArr.push([x, y]);
+			this.ellipseXOff += par.ellipseOffsetIncrement;
+			this.ellipseYOff += par.ellipseOffsetIncrement;
+		}
+		return newArr;
+	}
+
 	blobify() {
 		let px = this.position.x;
 		let py = this.position.y;
@@ -120,14 +137,14 @@ class Anchor {
 		return newArr;
 	}
 
-	starify(effect=1) {
+	starify(modifier = 1) {
 		let x = this.position.x;
 		let y = this.position.y;
 		let newArr = [];
 
 		let offStep = 0.01;
-		let radius1 = par.internalRadius * effect;
-		let radius2 = par.externalRadius * effect;
+		let radius1 = par.internalRadius * modifier;
+		let radius2 = par.externalRadius * modifier;
 		let npoints = par.starPoints;
 
 		push();
@@ -154,5 +171,31 @@ class Anchor {
 		}
 		pop();
 		return newArr;
+	}
+
+	static chasePose(targets) {
+		Object.keys(anchors).forEach((partName, i) => {
+			let anchor = anchors[partName];
+			if (targets[i]) {
+				anchor.setTarget(
+					createVector(targets[i].position.x, targets[i].position.y)
+				);
+			} else {
+				anchor.setTarget(
+					createVector(targets[0].position.x, targets[0].position.y)
+				);
+			}
+			anchor.behaviors();
+			anchor.update();
+			if (par.showAnchors || par.debug) anchor.show();
+		});
+	}
+	static refreshAnchors() {
+		Object.keys(anchors).forEach((partName, i) => {
+			let anchor = anchors[partName];
+			anchor.behaviors();
+			anchor.update();
+			if (par.showAnchors) anchor.show();
+		});
 	}
 }

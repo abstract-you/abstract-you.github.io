@@ -9,7 +9,11 @@ function scene02() {
 		faceapi.detect(gotFaces);
 		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
 		history2 = [];
-		resetRecVariables();
+	full = false;
+	rec = false;
+	preroll = false;
+	play = false;
+	phase = 0.0;
 		chooseScene('#scene-02');
 		canvas.parent('#canvas-02');
 		resizeCanvas(820, 820);
@@ -83,8 +87,8 @@ function drawLiveShape2(points) {
 	let shapeType = getShapeType();
 	if (rec && detections[0]) recordExpression(shapeType);
 
-	retargetAnchorsFromPose(points);
-
+	// chasePose(points);
+	Anchor.chasePose(points);
 	if (shapeType === 'softer') {
 		expanded = softerBody(anchors);
 	} else {
@@ -143,7 +147,7 @@ function playHistoryShape2(history, shapeType) {
 }
 
 function drawHistoryShape2(history, shapeType) {
-	retargetAnchorsFromPose(history);
+	Anchor.chasePose(history);
 	if (shapeType === 'softer') {
 		expanded = softerBody(anchors);
 	} else {
@@ -430,8 +434,8 @@ function topExpression(unsorted) {
 
 function recordExpression(typ) {
 	history2.push(typ);
-	setCounter(par.framesToRecord - history2.length);
-	if (history2.length === par.framesToRecord) finishRecording();
+	updateCounter(par.recordFrames - history2.length);
+	if (history2.length === par.recordFrames) finishRecording();
 }
 
 // Runs on expressionAggregate which is an array of shape types (softer/sharper)

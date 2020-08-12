@@ -12,7 +12,11 @@ function scene03() {
 
 		finalShapeType = analyzeExpressionHistory(history2);
 
-		resetRecVariables();
+	full = false;
+	rec = false;
+	preroll = false;
+	play = false;
+	phase = 0.0;
 		history3 = [];
 
 		chooseScene('#scene-03');
@@ -81,8 +85,8 @@ function voiceNet(points, level) {
 
 function recordVoice(history) {
 	history3.push(history);
-	setCounter(par.framesToRecord - history3.length);
-	if (history3.length === par.framesToRecord) finishRecording();
+	updateCounter(par.recordFrames - history3.length);
+	if (history3.length === par.recordFrames) finishRecording();
 }
 
 function playLiveShape3(history, type, level) {
@@ -97,7 +101,7 @@ function playLiveShape3(history, type, level) {
 function drawLiveShape3(history, type, level) {
 	// console.log('drawLiveShape3', history, type, level);
 	let scale = map(level, 0, 1, par.minSoundLevel, par.maxSoundLevel);
-	retargetAnchorsFromPose(history);
+	Anchor.chasePose(history);
 	if (type === 'softer') {
 		expanded = softerBody(anchors);
 		hullSet = hull(expanded, par.roundnessSofter);
