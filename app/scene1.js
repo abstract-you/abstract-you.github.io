@@ -54,6 +54,7 @@ function scene01() {
 			if (poses[0]) {
 				let pose = poses[0].pose.keypoints;
 				let skeleton = poses[0].skeleton;
+				// stores body proportions in a few global variables
 				deriveProportions(pose);
 				if (par.showExpanded) drawRef(expanded, 'paletorquise', 5);
 				if (rec) recordPose(pose);
@@ -63,10 +64,11 @@ function scene01() {
 				if (skeleton[0] && !preroll) previewSkeleton(skeleton);
 			}
 		}
-		// preroll plays a counter on the monitor before recording starts
+		// preroll plays a countdown on the monitor before recording starts
 		if (preroll) playPreroll();
 		// loop recording (if available)
 		if (full && !preroll && history1[0]) playShape(history1);
+		// shows framerate in the corner of the canvas for debugging purposes
 		if (par.frameRate) fps();
 	};
 }

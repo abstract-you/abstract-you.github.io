@@ -480,6 +480,9 @@ function finishRecording() {
 	redoButton.show();
 }
 
+// the logic behind this idea is deeply flawed, since
+// the readings are impacted by dozens of other factors before
+// the actual body proprortions show through
 function deriveProportions(pose) {
 	eyeDist = floor(poseDist(pose, LEFTEYE, RIGHTEYE));
 	shoulderDist = floor(poseDist(pose, LEFTSHOULDER, RIGHTSHOULDER));
