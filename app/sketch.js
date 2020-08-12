@@ -5,6 +5,101 @@
 // 	workersPath: './lib/',
 // });
 
+let colors = {
+	primary: '#f9f9f9',
+};
+
+// scene manager
+let mgr;
+
+// shape recording in three commulative steps
+// scene01 records anchor positions
+let history1 = [];
+// scene02 records top expressions
+let history2 = [];
+// scene03 records hull points
+// a final shape type is required for drawing
+let history3 = [];
+// the final shape type is the most common expression from history2
+// TODO should this be a global variable?
+let finalShapeType;
+
+// will hold the canvas
+// contains the canvas DOM element in .canvas
+// (will be needed for CCapture)
+let sketchCanvas;
+// secondary canvas for showing the webacm preview
+// and drawing posenet and faceapi feedback
+let monitor;
+// webcam video feed
+let sample;
+
+let phase = 0.0;
+let zoff = 0.0;
+
+// ui elements
+let recButton;
+let nextButton;
+let restartButton;
+let redoButton;
+let counterButton;
+
+// state variables for managing the ui
+let rec = false;
+let preroll = false;
+let play = false;
+let full = false;
+let sceneReady = false;
+let prerollCounter = 0;
+let faceapiLoaded = false;
+let faceapiStandby = true;
+let isFaceApiReady = false;
+
+// ml5/posenet
+let posenet;
+let poses = [];
+let posenetOptions = {
+	// imageScaleFactor: 0.3,
+	// outputStride: 16,
+	// flipHorizontal: false,
+	// minConfidence: 0.5,
+	// scoreThreshold: 0.5,
+	// nmsRadius: 20,
+	// detectionType: 'single',
+	// multiplier: 0.75,
+	maxPoseDetections: 1,
+};
+
+// ratios for shape calibration (TODO)
+let eyeDist;
+let shoulderDist;
+let hipDist;
+let eyeShoulderRatio;
+let eyeWaistRatio;
+let shoulderWaistRatio;
+
+// faceapi and expressions
+let faceapi;
+let detections = [];
+const faceOptions = {
+	withLandmarks: false,
+	withExpressions: true,
+	withDescriptors: false,
+};
+
+// mic management (for scene03)
+let mic;
+let micLevel;
+let spectrum;
+let ampl;
+
+// anchors with a basic physics engine to build shape around
+let noseAnchor;
+let anchors = [];
+// let expanded = [];
+// let hullSet = [];
+
+// Used for assinging anchors to specific parts
 const PARTS = [
 	'nose',
 	'leftEye',
@@ -25,6 +120,8 @@ const PARTS = [
 	'rightAnkle',
 ];
 
+// TODO: use to build a skeleton when posenet doesn't provide one
+// (TODO: is there a setting to tweak in posenet to fix that?)
 const SKELETON = [
 	[11, 5],
 	[7, 5],
@@ -40,105 +137,24 @@ const SKELETON = [
 	[11, 12],
 ];
 
-// g?
-let mgr, g;
-
-let sketchCanvas;
-let monitor;
-let sample;
-
-let status;
-let recButton;
-let nextButton;
-let restartButton;
-let redoButton;
-let counterButton;
-let webcamPreview;
-
-let rec = false;
-let preroll = false;
-let play = false;
-let full = false;
-let sceneReady = false;
-let prerollCounter = 0;
-
-let posenet;
-let poses = [];
-let options = { maxPoseDetections: 1 };
-
-let eyeDist;
-let shoulderDist;
-let hipDist;
-let eyeShoulderRatio;
-let eyeWaistRatio;
-let shoulderWaistRatio;
-
-let noseAnchor;
-let anchors = [];
-let expanded = [];
-let hullSet = [];
-
-let faceapi;
-let detections = [];
-let faceapiLoaded = false;
-let faceapiStandby = true;
-let isFaceApiReady = false;
-const faceOptions = {
-	withLandmarks: false,
-	withExpressions: true,
-	withDescriptors: false,
-};
-
-let history1 = [];
-let history2 = [];
-let history3 = [];
-let finalShapeType;
-
-let phase = 0.0;
-let zoff = 0.0;
-
-let mic;
-let micLevel;
-let spectrum;
-let ampl;
-
-// const NOSE = 0;
-// const LEFTEYE = 1;
-// const RIGHTEYE = 2;
-// const LEFTEAR = 3;
-// const RIGHTEAR = 4;
-// const LEFTSHOULDER = 5;
-// const RIGHTSHOULDER = 6;
-// const LEFTELBOW = 7;
-// const RIGHTELBOW = 8;
-// const LEFTWRIST = 9;
-// const RIGHTWRIST = 10;
-// const LEFTHIP = 11;
-// const RIGHTHIP = 12;
-// const LEFTKNEE = 13;
-// const RIGHTKNEE = 14;
-// const LEFTANKLE = 15;
-// const RIGHTANKLE = 16;
-
-// const rfPARTS = [
-// 	'nose',
-// 	'leftEye',
-// 	'rightEye',
-// 	'leftEar',
-// 	'rightEar',
-// 	'leftShoulder',
-// 	'rightShoulder',
-// 	'leftElbow',
-// 	'rightElbow',
-// 	'leftWrist',
-// 	'rightWrist',
-// 	'leftHip',
-// 	'rightHip',
-// 	'leftKnee',
-// 	'rightKnee',
-// 	'leftAnkle',
-// 	'rightAnkle',
-// ];
+// makes the code for deriving ratios easier to read
+const NOSE = 0;
+const LEFTEYE = 1;
+const RIGHTEYE = 2;
+const LEFTEAR = 3;
+const RIGHTEAR = 4;
+const LEFTSHOULDER = 5;
+const RIGHTSHOULDER = 6;
+const LEFTELBOW = 7;
+const RIGHTELBOW = 8;
+const LEFTWRIST = 9;
+const RIGHTWRIST = 10;
+const LEFTHIP = 11;
+const RIGHTHIP = 12;
+const LEFTKNEE = 13;
+const RIGHTKNEE = 14;
+const LEFTANKLE = 15;
+const RIGHTANKLE = 16;
 
 p5.disableFriendlyErrors = true;
 
@@ -223,7 +239,7 @@ function startWebcam() {
 }
 
 function webcamReady() {
-	posenet = ml5.poseNet(sample, options, modelReady);
+	posenet = ml5.poseNet(sample, posenetOptions, modelReady);
 	posenet.on('pose', function (results) {
 		poses = results;
 		sceneReady = true;
@@ -248,10 +264,6 @@ function gotFaces(error, result) {
 	faceapiLoaded = true;
 	if (!faceapiStandby) faceapi.detect(gotFaces);
 }
-
-// =============================================================
-// =                         BEGIN SCENES                      =
-// =============================================================
 
 // --0 intro
 
@@ -417,14 +429,13 @@ function makePointSet(vArr) {
 
 function startPreroll() {
 	preroll = true;
-	recButton.addClass('preroll');
+	recButton.addClass('rec');
 	recButton.html('...');
 	recButton.mousePressed(finishRecording);
 }
 
 function cancelRecording() {
 	resetRecVariables();
-	recButton.removeClass('preroll');
 	recButton.removeClass('rec');
 	recButton.html('Record');
 	if (mgr.isCurrent(scene01)) {
@@ -526,7 +537,7 @@ function getNewVideo(loc) {
 
 function videoReady() {
 	if (par.debug) console.log('Video Ready');
-	posenet = ml5.poseNet(sample, options, modelReady);
+	posenet = ml5.poseNet(sample, posenetOptions, modelReady);
 	posenet.on('pose', function (results) {
 		// console.log('Poses Ready')
 		poses = results;
@@ -544,4 +555,14 @@ function remapPosenetToArray(point, rWidth, rHeight, cWidth, cHeight, padding) {
 	let newX = map(point.position.x, 0, rWidth, padding, cWidth - padding);
 	let newY = map(point.position.y, 0, rHeight, padding, cHeight - padding);
 	return [newX, newY];
+}
+
+function drawRef(points, color, weight) {
+	push();
+	stroke(color);
+	strokeWeight(weight);
+	points.forEach(p => {
+		point(p[0], p[1]);
+	});
+	pop();
 }

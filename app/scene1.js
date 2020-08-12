@@ -1,79 +1,71 @@
 function scene01() {
 	this.enter = function () {
+		// clean-up from previous scenes
 		noseAnchor = '';
+		// resize video for a larger preview this time
+		// TODO look into video positioning
+		// sample.size(627, 470);
+		sample.hide();
+		// reset state vars
 		history1 = [];
-		resetRecVariables();
-		chooseScene('#scene-01');
+		full = false;
+		rec = false;
+		preroll = false;
+		play = false;
+		// page layout
 		sketchCanvas.parent('#canvas-01');
 		resizeCanvas(820, 820);
-		// resize video for a larger preview this time
-		sample.size(627, 470);
-		sample.hide();
+		// show preview in secondary canvas
 		monitor.parent('#webcam-monitor-01');
 		monitor.show();
+		// rewire ui
+		// rehook and reset and show record button
 		recButton = select('#record-button-01');
 		recButton.html('Record');
-		recButton.removeClass('primary');
 		recButton.removeClass('rec');
-		recButton.removeClass('preroll');
-		recButton.mousePressed(() => {
-			startPreroll();
-		});
+		recButton.mousePressed(() => startPreroll());
 		recButton.show();
+		// reset and show counter
 		counterButton = select('#counter-01');
 		counterButton.show();
+		// rehook button for this scene, and hide for now
 		redoButton = select('#redo-01');
-		redoButton.mousePressed(() => {
-			mgr.showScene(scene01);
-		});
+		redoButton.mousePressed(() => mgr.showScene(scene01));
 		redoButton.hide();
+		// rehook button for this scene, and hide for now
 		nextButton = select('#next-button-01');
-		nextButton.mousePressed(() => {
-			mgr.showScene(scene02);
-		});
+		nextButton.mousePressed(() => mgr.showScene(scene02));
 		nextButton.hide();
+		// scene management
+		chooseScene('#scene-01');
 	};
 
-	this.setup = function () {};
-
-	// --1draw
 	this.draw = function () {
+		background(colors.primary);
+		// show a dark background on the webcam monitor until the webcam feed starts
 		monitor.background(0);
-		background('#f9f9f9');
-		translate(width, false);
-		scale(-1, 1);
-
-		if (sample) {
-			// vs is 500x470 but feed is 627x470
-			monitor.image(sample, -50, 0);
-		}
-
+		// mirror the canvas to match the mirrored video from the camera
+		mirror();
+		// render video on the monitor canvas and center it
+		// TODO: be smarter about adapting to different video sources
+		if (sample) monitor.image(sample, -62, 0);
+		// Check for live poses
 		if (poses) {
 			if (poses[0]) {
 				let pose = poses[0].pose.keypoints;
-
-				if (!preroll && par.showHUD) previewSkeleton(poses[0]);
-
-				if (par.showExpanded) {
-					push();
-					stroke('paleturquoise');
-					strokeWeight(5);
-					expanded.forEach(p => {
-						point(p[0], p[1]);
-					});
-					pop();
-				}
-
+				let skeleton = poses[0].skeleton;
 				deriveProportions(pose);
-
+				if (par.showExpanded) drawRef(expanded, 'paletorquise', 5);
 				if (rec) recordPose(pose);
-
+				// play a live shape when there is no recording
 				if (!full) drawShape(pose);
+				// show the posenet skeleton on the monitor canvas
+				if (skeleton[0] && !preroll) previewSkeleton(skeleton);
 			}
 		}
-
-		playPreroll();
-
+		// preroll plays a counter on the monitor before recording starts
+		if (preroll) playPreroll();
+		// loop recording (if available)
 		if (full && !preroll && history1[0]) playShape(history1);
 		if (par.frameRate) fps();
 	};
@@ -246,7 +238,6 @@ function previewSkeleton(pose) {
 
 // Shows a 3...2..1... animation on the second canvas
 function playPreroll() {
-	if (preroll) {
 		let counter = floor(map(prerollCounter, 0, par.mississippi, 4, 0));
 		if (counter > 0) {
 			monitor.push();
@@ -264,7 +255,6 @@ function playPreroll() {
 		} else {
 			startRecording();
 		}
-	}
 }
 
 function recordPose(points) {

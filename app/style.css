@@ -335,9 +335,10 @@ button.rec:hover,
 	border-color: var(--black);
 }
 
-button.rec:hover,
+/* button.rec:hover,
 .btn.rec:hover {
-}
+} */
+
 .hidden {
 	display: none !important;
 }
@@ -375,11 +376,6 @@ strong {
 
 /* ==Misc  *************************************************** */
 /* ************************************************************** */
-
-/* Places the dat.GUI on the left */
-.dg.a {
-	/* float: left; */
-}
 
 #test-controls {
 	display: grid;
