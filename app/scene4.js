@@ -5,7 +5,7 @@ function scene04() {
 			posenet.removeAllListeners();
 			poses = null;
 		}
-		faceapiStandby = true;
+		isFaceapiStandby = true;
 	full = false;
 	rec = false;
 	preroll = false;

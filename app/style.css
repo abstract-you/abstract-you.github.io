@@ -175,11 +175,11 @@ button.counter {
 		'controls controls controls';
 }
 
-#scene-00 .webcam-monitor-container video {
+/* #scene-00 .webcam-monitor-container video {
 	border-radius: 10px;
 	transform: scaleX(-1);
 	object-fit: cover;
-}
+} */
 
 #scene-00 .webcam-monitor-container {
 	height: 350px;

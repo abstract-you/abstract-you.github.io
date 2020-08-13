@@ -27,6 +27,8 @@ class Anchor {
 
 	show() {
 		// Probably a very bad idea...
+	let sampleWidth = sample.width ? sample.width : 640;
+	let sampleHeight = sample.height ? sample.height : 480;
 		let x = remap(this.position.x, sampleWidth, width, par.padding);
 		let y = remap(this.position.y, sampleHeight, height, par.padding);
 		push();
@@ -143,7 +145,6 @@ class Anchor {
 		let newArr = [];
 
 		let offStep = 0.01;
-		let radius1 = par.internalRadius * modifier;
 		let radius2 = par.externalRadius * modifier;
 		let npoints = par.starPoints;
 

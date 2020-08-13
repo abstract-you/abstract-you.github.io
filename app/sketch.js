@@ -51,11 +51,12 @@ let rec = false;
 let preroll = false;
 let play = false;
 let full = false;
-let sceneReady = false;
 let prerollCounter = 0;
-let faceapiLoaded = false;
-let faceapiStandby = true;
+let isWebcamReady = false;
+let isPosenetReady = false;
+let isFaceapiLoaded = false;
 let isFaceApiReady = false;
+let isFaceapiStandby = true;
 
 // ml5/posenet
 let posenet;
@@ -176,10 +177,9 @@ function setup() {
 	monitor = createGraphics(500, 470);
 	monitor.textFont('Space Mono');
 	monitor.background(255);
-	mirror(monitor);
 	startWebcam();
 	// start getting faceapi ready
-	if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
+	if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceLoaded);
 	// Prepare anchors to chase posenet points
 	Object.keys(anchors).forEach(partName => {
 		let anchor = new Anchor(width / 2, height / 2, partName);
@@ -236,103 +236,37 @@ function startMic() {
 function startWebcam() {
 	sample = createCapture(VIDEO, webcamReady);
 	// TODO - too ugly
-	sample.parent('#webcam-monitor-0' + par.scene);
 }
 
 function webcamReady() {
-	sampleWidth = sample.width;
-	sampleHeight = sample.height;
+	isWebcamReady = true;
+	// sampleWidth = sample.width;
+	// sampleHeight = sample.height;
 	posenet = ml5.poseNet(sample, posenetOptions, modelReady);
 	posenet.on('pose', function (results) {
 		poses = results;
-		sceneReady = true;
 	});
 }
 
 function modelReady() {
+	isPosenetReady = true;
 	// modelReady
 }
 
-function faceReady() {
-	isFaceApiReady = true;
+function faceLoaded() {
+	isFaceapiLoaded = true;
 	faceapi.detect(gotFaces);
 }
 
 function gotFaces(error, result) {
 	if (error) {
-		l(error);
+		console.error(error);
 		return;
 	}
 	detections = result;
-	faceapiLoaded = true;
-	if (!faceapiStandby) faceapi.detect(gotFaces);
+	isFaceApiReady = true;
+	if (!isFaceapiStandby) faceapi.detect(gotFaces);
 }
-
-// --0 intro
-
-function scene00() {
-	this.enter = function () {
-		// Hide previous scene
-		select('#scene-01').addClass('hidden');
-		// show this scene
-		select('#scene-00').removeClass('hidden');
-		// move the canvas over
-		sketchCanvas.parent('#canvas-00');
-		// move the webcam monitor over
-		sample.parent('#webcam-monitor-00');
-		// resize video to fit preview frame
-		// sample.size(467, 350);
-	};
-
-	// --0draw
-	this.draw = function () {
-		background(255);
-		if (sceneReady) {
-			if (poses[0]) {
-				let p = createVector(poses[0].pose.nose.x, poses[0].pose.nose.y);
-				noseAnchor.setTarget(p);
-
-				noseAnchor.behaviors();
-				noseAnchor.update();
-				// if (par.showAnchors) noseAnchor.show();
-
-				let nx = noseAnchor.position.x;
-				let ny = noseAnchor.position.y;
-
-				// Keeps shape from reaching the corners
-				let pad = constrain(80, 0, width / 4);
-				// Mirror? Flip back?
-				let fx = map(nx, 0, width, width, 0);
-				let cx = constrain(fx, pad, width - pad);
-				let cy = constrain(ny, pad, height - pad);
-
-				push();
-				translate(cx, cy);
-				stroke(0);
-				strokeWeight(par.shapeStrokeWeight);
-				noFill();
-				beginShape();
-				for (let a = 0; a < 360; a += 1) {
-					// Follow a circular path through the noise space to create a smooth flowing shape
-					let xoff = map(cos(a + phase), -1, 1, 0, 1);
-					let yoff = map(sin(a + phase), -1, 1, 0, 1);
-					let r = map(noise(xoff, yoff, zoff), 0, 1, 50, 60);
-					let x = r * cos(a);
-					let y = r * sin(a);
-					curveVertex(x, y);
-				}
-				endShape(CLOSE);
-				phase += 0.001;
-				zoff += 0.03;
-				pop();
-			}
-		}
-		mirror();
-		if (par.frameRate) fps();
-		mirror(); // Yeah, perfectly reasonable solution...
-	};
-}
-
 
 // // Gets a posenet pose and returns distance between two points
 // function poseDist(pose, a, b) {
@@ -349,7 +283,6 @@ function scene00() {
 // 	let right = createVector(pose[2].position.x, pose[2].position.y);
 // 	return p5.Vector.dist(left, right);
 // }
-
 
 function drawAbstractShape() {
 	if (par.fillShape) {
@@ -374,9 +307,10 @@ function drawAbstractShape() {
 
 function startPreroll() {
 	preroll = true;
+	full = false;
 	recButton.addClass('rec');
-	recButton.html('...');
-	recButton.mousePressed(finishRecording);
+	recButton.html('Stop');
+	recButton.mousePressed(cancelRecording);
 }
 
 function noPreroll() {
@@ -399,29 +333,48 @@ function noPreroll() {
 // 	}
 // }
 
-
 function startRecording() {
+	full = false;
 	preroll = false;
 	prerollCounter = 0;
 	rec = true;
+	redoButton.hide()
+	nextButton.hide()
+	recButton.show()
 	recButton.addClass('rec');
 	recButton.html('Stop');
 	recButton.mousePressed(finishRecording);
+	counterButton.show()
 }
 
 function updateCounter(remainingFrames) {
-	let secs = floor(remainingFrames/60)
-	counterButton.html('00:'+secs)
+	let secs = floor(remainingFrames / 60);
+	counterButton.html('00:' + secs);
 }
 
 function finishRecording() {
 	// TODO localStorage?
+	preroll = false;
+	prerollCounter = 0;
 	rec = false;
 	full = true;
 	recButton.hide();
 	nextButton.show();
 	counterButton.hide();
 	redoButton.show();
+}
+
+// Used when stopping during the preroll, before there's any recording at all
+function cancelRecording() {
+	// TODO localStorage?
+	preroll = false;
+	prerollCounter = 0;
+	rec = false;
+	full = false;
+	recButton.html('Record');
+	recButton.removeClass('rec');
+	recButton.mousePressed(() => startPreroll());
+	counterButton.html('00:' + par.recordFrames / 60);
 }
 
 // the logic behind this idea is deeply flawed, since
@@ -438,7 +391,6 @@ function mirror(obj = sketchCanvas) {
 	obj.scale(-1, 1);
 }
 
-
 // Hides everything and then shows the desired scene
 function chooseScene(sceneId) {
 	if (par.debug) console.log('Going to ', sceneId);
@@ -451,7 +403,6 @@ function chooseScene(sceneId) {
 // Use in draw() to show framerate in bottom left corner
 function fps() {
 	push();
-	mirror(); // Unmirror so we can read the text
 	textSize(14);
 	fill(200);
 	text(floor(frameRate()), 20, height - 20);
@@ -476,7 +427,6 @@ function videoReady() {
 	});
 }
 
-
 function drawRef(points, color, weight) {
 	push();
 	stroke(color);
@@ -500,14 +450,14 @@ function remapFromPose(pointArr) {
 	let padding = par.padding ? par.padding : 50;
 	let remapped = pointArr.map(point => {
 		return [
-			remap(point[0],sampleWidth,width,padding),
-			remap(point[1],sampleHeight,height,padding)
+			remap(point[0], sampleWidth, width, padding),
+			remap(point[1], sampleHeight, height, padding),
 		];
 	});
 	return remapped;
 }
 
-// remaps a single number 
+// remaps a single number
 function remap(point, range, target, padding) {
 	return map(point, 0, range, padding, target - padding);
 }

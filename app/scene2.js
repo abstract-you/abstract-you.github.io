@@ -6,7 +6,9 @@ function scene02() {
 		if (posenet) {
 			posenet.removeAllListeners();
 			poses = null;
+			isPosenetReady = false;
 		}
+		sample.hide();
 		// ----- reset state vars
 		history2 = [];
 		full = false;
@@ -14,7 +16,9 @@ function scene02() {
 		preroll = false;
 		play = false;
 		// -----faceapi
-		faceapiStandby = false;
+		isFaceapiStandby = false;
+		// kickstart face detection 
+		// gotFaces() calls itelfs every frame while isFaceapiStandby is false
 		faceapi.detect(gotFaces);
 		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
 		// ----- page layout
@@ -32,6 +36,8 @@ function scene02() {
 		recButton.show();
 		// reset and show counter
 		counterButton = select('#counter-02');
+		// update recording time based on recording frames. assumes a recording time of less than 60 seconds...
+		counterButton.html('00:' + par.recordFrames / 60);
 		counterButton.show();
 		// rehook button for this scene, and hide for now
 		redoButton = select('#redo-02');
@@ -58,55 +64,66 @@ function scene02() {
 		// FIXME: center video
 		if (sample) monitor.image(sample, monitor.width / 2 - sample.width / 2, 0);
 
-		// -----live faceapi expression
-		if (faceapiLoaded) {
-			// First just the graph
-			if (detections[0] && par.debug) graphExpressions();
-			// -----live shape
-			if (!full && history1[0] && detections[0]) {
-				playLiveShape2(history1);
-				// -----recorded shape
-			} else if (full && history2[0]) {
-				playHistoryShape2(history1, analyzeExpressionHistory(history2));
-				// Show a notice if we have to wait for the api
-			} else {
-				checkFaceApi();
+		// -----ready faceapi
+		if (isFaceapiLoaded) {
+			// -----live expressions
+			if (detections[0]) {
+				// -----setup
+				// draw a graph of expression data and show the current top expression
+				// (completely independently from drawing the shape)
+				if (detections[0] && par.debug) previewExpression(detections);
+				// show detection feedback on the webcam monitor
+				if (detections[0]) previewExpression(detections);
+
+				// -----play live shape
+
+				// -----record shape
 			}
 
-			// -----preroll
-			// preroll plays a countdown on the monitor before recording starts
-			if (preroll) noPreroll();
-			// -----debugging
-			// shows framerate in the corner of the canvas for debugging purposes
-			if (par.frameRate) fps();
+			// -----replay record shape
+
+			// -----admin
+
+			// // -----live shape
+			// if (!full && history1[0] && detections[0]) {
+			// 	playLiveShape2(history1);
+			// } else if (full && history2[0]) {
+			// 	// -----recorded shape
+			// 	playHistoryShape2(history1, analyzeExpressionHistory(history2));
+			// 	// Show a notice if we have to wait for the api
+
+			// 	// -----preroll
+			// 	// preroll plays a countdown on the monitor before recording starts
+			// 	if (preroll) noPreroll();
+			// 	// -----debugging
+			// 	// shows framerate in the corner of the canvas for debugging purposes
+			// 	if (par.frameRate) fps();
+			// }
+
+			// -----loading faceapi
+		} else {
+			// show a loading screen if faceapi is not ready yet
+			checkFaceApi();
 		}
 	};
 }
 
-//-------------------------------------------------------------------------------- 
+//--------------------------------------------------------------------------------
 
-function makeShape2(history1,shapeStyle) {
+function makeShape2(history1, shapeStyle) {}
 
-}
+function replayShape2(history1, shapeStyle) {}
 
-function replayShape2(history1,shapeStyle) {
+function renderShape2(shape) {}
 
-}
+function recordShape2(data) {}
 
-function renderShape2(shape) {
-
-}
-
-function recordShape2(data) {
-
-}
-
-//-------------------------------------------------------------------------------- 
-//-------------------------------------------------------------------------------- 
-//-------------------------------------------------------------------------------- 
-//-------------------------------------------------------------------------------- 
-//-------------------------------------------------------------------------------- 
-//-------------------------------------------------------------------------------- 
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 
 // Plays the history from step1 and applies expression data on top of it
 // Gets loaded with `history1` which is an array of posenet poses
@@ -431,32 +448,52 @@ function expandBlob(
 	return newArr;
 }
 
-function graphExpressions() {
+// draws an expression graph for the first detected face at top left of canvas
+// show current expression on the bottom of the canvas
+function graphExpressions(faces) {
 	let expressions;
 	push();
 	translate(width, 0);
 	scale(-1, 1);
-	if (detections) {
-		if (detections.length > 0) {
-			({ expressions } = detections[0]);
-			let keys = Object.keys(expressions);
-			keys.forEach((item, idx) => {
-				textAlign(RIGHT);
-				text(item, 110, idx * 20 + 22);
-				const val = map(expressions[item], 0, 1, 0, 100);
-				text(floor(val), 140, idx * 20 + 22);
-				rect(160, idx * 20 + 10, val, 15);
-			});
-			let current = topExpression(detections[0].expressions);
-			textAlign(CENTER);
-			textSize(18);
-			text(current, width / 2, height - 18);
-			textAlign(LEFT);
-		}
-	}
+	({ expressions } = faces[0]);
+	Object.keys(expressions).forEach((item, idx) => {
+		textAlign(RIGHT);
+		text(item, 110, idx * 20 + 22);
+		const val = map(expressions[item], 0, 1, 0, 100);
+		text(floor(val), 140, idx * 20 + 22);
+		rect(160, idx * 20 + 10, val, 15);
+	});
+	let current = topExpression(faces[0].expressions);
+	textAlign(CENTER);
+	textSize(18);
+	text(current, width / 2, height - 18);
+	textAlign(LEFT);
 	pop();
 }
 
+// draws a sqaure around the face in the monitor
+// shows expression and score under the square
+function previewExpression(faces) {
+	let current = topExpression(faces[0].expressions);
+	let score = faces[0].expressions[current];
+	let box = faces[0].detection.box;
+	monitor.stroke('blue');
+	monitor.noFill();
+	monitor.rect(box.x, box.y, box.width, box.height);
+	monitor.noStroke();
+	monitor.fill('red');
+	monitor.push();
+	// monitor.translate(monitor.width, 0);
+	// monitor.scale(-1, 1);
+	monitor.text(
+		round(score * 100, 2) + ' ' + current,
+		box.bottomLeft.x,
+		box.bottomLeft.y + 20
+	);
+	monitor.pop();
+}
+
+// Sorts expressions and returns the top result
 function topExpression(unsorted) {
 	let sorted = [];
 	sorted = Object.entries(unsorted);
@@ -494,7 +531,7 @@ function analyzeExpressionHistory(exps) {
 }
 
 function checkFaceApi() {
-	if (!faceapiLoaded) {
+	if (!isFaceapiLoaded) {
 		push();
 		mirror(); // Unmirror so we can write in the right direction
 		textAlign(CENTER);

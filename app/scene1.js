@@ -1,23 +1,21 @@
 function scene01() {
 	this.enter = function () {
 		dbg('scene01');
-		// ----- clean-up from previous scenes
+		// ----- clean-up
 		noseAnchor = '';
-		// resize video for a larger preview this time
-		// TODO look into video positioning
-		// sample.size(627, 470);
 		sample.hide();
+		isFaceapiStandby = true;
 		// ----- reset state vars
 		history1 = [];
 		full = false;
 		rec = false;
 		preroll = false;
-		play = false;
 		// ----- page layout
 		sketchCanvas.parent('#canvas-01');
 		resizeCanvas(820, 820);
 		// show preview in secondary canvas
 		monitor.parent('#webcam-monitor-01');
+		monitor.resizeCanvas(500, 500);
 		monitor.show();
 		// ----- rewire ui
 		// rehook and reset and show record button
@@ -28,6 +26,8 @@ function scene01() {
 		recButton.show();
 		// reset and show counter
 		counterButton = select('#counter-01');
+		// update recording time based on recording frames. assumes a recording time of less than 60 seconds...
+		counterButton.html('00:' + par.recordFrames / 60);
 		counterButton.show();
 		// rehook button for this scene, and hide for now
 		redoButton = select('#redo-01');
@@ -46,18 +46,33 @@ function scene01() {
 		background(colors.primary);
 		// show a dark background on the webcam monitor until the webcam feed starts
 		monitor.background(0);
-		// mirror the canvas to match the mirrored video from the camera
-		translate(width, 0);
-		scale(-1, 1);
 		// render video on the monitor canvas and center it
-		// FIXME: center video
-		if (sample) monitor.image(sample, monitor.width / 2 - sample.width / 2, 0);
+		if (sample) {
+			monitor.push();
+			mirror(monitor);
+			// FIXME: hardcoded for a 640x480 webcam. Will need to be more adaptive
+			monitor.image(
+				sample,
+				320, // 320? 380?
+				0,
+				monitor.width,
+				monitor.height,
+				100, //120
+				0,
+				monitor.width,
+				sample.height
+			);
+			monitor.pop();
+		}
 
 		// -----live poses
+		push();
+		mirror();
 		if (poses) {
 			if (poses[0]) {
 				let pose = poses[0].pose.keypoints;
 				let skeleton = poses[0].skeleton;
+				// Anchor.chasePose(pose);
 
 				// -----setup
 				// show the posenet skeleton on the monitor canvas
@@ -65,23 +80,26 @@ function scene01() {
 				// updates proportions in global variables
 				// deriveProportions(pose);
 				// -----
+				// -----record shape
+				// add frame to recording
+				if (rec) recordShape1(pose);
+
+				// -----
 				// -----play live shape
 				// play a live shape when there is no recording
 				if (!full) makeShape1(pose);
-				// -----
-				// -----record shape
-				// add frame to recording
-				if (rec) recordShape1(anchors);
 			}
 		}
 		// -----
 		// -----replay recorded shape
-		if (full && !preroll && history1[0]) replayShape1();
+		if (full && !preroll && !rec) replayShape1();
 		// -----preroll
 		// preroll plays a countdown on the monitor before recording starts
 		// loop recording (if available)
 		if (preroll) playPreroll();
-		// -----debugging
+		pop();
+
+		// -----admin
 		// shows framerate in the corner of the canvas for debugging purposes
 		if (par.frameRate || par.debug) fps();
 	};
@@ -94,8 +112,8 @@ function scene01() {
 // is calculated from all points to determine outline path (Roundness is the
 // concavity paramater, how tightly the hull wraps around the points.)
 // TRY. Create additional expansion points around torso and between limb points
-function makeShape1(points) {
-	Anchor.chasePose(points);
+function makeShape1(pose) {
+	Anchor.chasePose(pose);
 	let expanded = [];
 	expanded = expanded.concat(anchors.nose.ellipsify(3));
 	expanded = expanded.concat(anchors.leftEar.ellipsify());
@@ -128,13 +146,6 @@ function makeShape1(points) {
 	// (anchors draw their own reference after retaregtting)
 }
 
-// replays a shape from history
-// use frameCounter as an iterator for looping through the recorded array
-function replayShape1() {
-	let i = frameCount % history1.length;
-	renderShape1(history1[i]);
-}
-
 // draw final shape outline
 function renderShape1(shape) {
 	push();
@@ -149,13 +160,25 @@ function renderShape1(shape) {
 	pop();
 }
 
-// stores anchors in history1, they will get reused in later steps
+// replays a shape from history
+// use frameCounter as an iterator for looping through the recorded array
+function replayShape1() {
+	// console.log('replayShape1:', history1)
+	let i = frameCount % history1.length;
+	// let pose = Object.entries(history1[i]);
+	makeShape1(history1[i]);
+}
+
+// stores pose in history1, this will be the base for the shape in later steps
 // updates counter with remaining frames
 // stops recording when recordFrames is reached
 function recordShape1(data) {
 	history1.push(data);
 	updateCounter(par.recordFrames - history1.length);
-	if (history1.length === par.recordFrames) finishiRecording();
+	if (history1.length > par.recordFrames) {
+		dbg('recorded ' + par.recordFrames + ' frames');
+		finishRecording();
+	}
 }
 
 // Shows a posenet skeleton on the webcam monitor
@@ -168,7 +191,9 @@ function previewSkeleton(skeleton) {
 		let partA = skeleton[i][0];
 		let partB = skeleton[i][1];
 		monitor.push();
-		monitor.translate(-50, 0);
+		mirror(monitor)
+		// realign with mirrored video
+		monitor.translate(240,0);
 		monitor.stroke('#AFEEEE');
 		monitor.line(
 			partA.position.x,
@@ -188,8 +213,6 @@ function playPreroll() {
 	let counter = floor(map(prerollCounter, 0, par.preRecCounterFrames, 3.9, 0));
 	if (counter > 0) {
 		monitor.push();
-		monitor.translate(monitor.width, 0);
-		monitor.scale(-1, 1);
 		monitor.noStroke();
 		monitor.fill(0, 200);
 		monitor.rect(0, 0, monitor.width, monitor.height);
@@ -200,6 +223,7 @@ function playPreroll() {
 		monitor.pop();
 		prerollCounter++;
 	} else {
+		dbg('preroll calling startRecording()');
 		startRecording();
 	}
 }

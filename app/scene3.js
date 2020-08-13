@@ -1,12 +1,13 @@
 function scene03() {
 	// --enter
 	this.enter = function () {
+		isFaceapiStandby = false;
 		console.log('entering scene 03')
 		if (posenet) {
 			posenet.removeAllListeners();
 			poses = null;
 		}
-		faceapiStandby = true;
+		isFaceapiStandby = true;
 		startMic();
 		vf.hide();
 

@@ -5,7 +5,7 @@ class Paramaterize {
 		this.preRecCounterFrames = 20; // 240 frames is about 4 seconds
 
 		// ----- general
-		this.frameRate = 60 // TODO do I still need this?
+		this.frameRate = 60; // TODO do I still need this?
 
 		// ----- scene01 ellipse
 		this.ellipseOffsetIncrement = 0.01;
@@ -13,6 +13,16 @@ class Paramaterize {
 		this.ellipseMaxRadius = 40;
 		this.ellipseIncrement = 60;
 
+		this.dx = 380;
+		this.dy = 0;
+		this.dwidth = 500;
+		this.dheight = 500
+		this.sx = 0;
+		this.sy = 0;
+		this.swidth = 500;
+		this.sheight = 480;
+
+		this.videoSync = 100;
 		this.hideShape = false;
 		this.referenceAnchorRadius = 10;
 		this.showHUD = false;
@@ -92,10 +102,20 @@ let gui = new dat.GUI({ autoPlace: true });
 let sceneGui = gui.add(par, 'scene', [0, 1, 2, 3, 4]);
 sceneGui.onChange(() => sceneRouter());
 
-// -----important 
+// -----important
 gui.add(par, 'debug');
 gui.add(par, 'recordFrames');
 gui.add(par, 'preRecCounterFrames');
+gui.add(par, 'videoSync');
+
+gui.add(par, 'dx');
+gui.add(par, 'dy');
+gui.add(par, 'dwidth');
+gui.add(par, 'dheight');
+gui.add(par, 'sx');
+gui.add(par, 'sy');
+gui.add(par, 'swidth');
+gui.add(par, 'sheight');
 
 // -----01scene
 let f01 = gui.addFolder('Step 01');
