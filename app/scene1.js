@@ -3,6 +3,7 @@ function scene01() {
 		dbg('scene01');
 		// ----- clean-up
 		noseAnchor = '';
+		sample.size(668,500)
 		sample.hide();
 		isFaceapiStandby = true;
 		// ----- reset state vars
@@ -50,14 +51,13 @@ function scene01() {
 		if (sample) {
 			monitor.push();
 			mirror(monitor);
-			// FIXME: hardcoded for a 640x480 webcam. Will need to be more adaptive
 			monitor.image(
 				sample,
-				320, // 320? 380?
+				sample.width/2, 
 				0,
 				monitor.width,
 				monitor.height,
-				100, //120
+				sample.width-monitor.width, //120
 				0,
 				monitor.width,
 				sample.height
@@ -76,7 +76,7 @@ function scene01() {
 
 				// -----setup
 				// show the posenet skeleton on the monitor canvas
-				if (skeleton[0] && !preroll) previewSkeleton(skeleton);
+				if (skeleton[0] && !preroll) previewSkeleton();
 				// updates proportions in global variables
 				// deriveProportions(pose);
 				// -----
@@ -105,7 +105,7 @@ function scene01() {
 	};
 }
 
-// -----shape pipeline
+// -----shape pipeline: draw basic shape based on pose data
 // Anchors target points and stabilize jerky movements and posenet quirks.
 // Expanded shapes are drawn around anchors to form a body around the
 // skeleton, points based on those shapes are added to the array. Convex hull
@@ -185,7 +185,8 @@ function recordShape1(data) {
 // TRY. either figure out how to make posenet show the skeleton with lower confidence,
 // or build it manually based on the points that are alawys available. Plus some basic
 // paramaters like minimum/maximum bone length (relative to some general proportion?)
-function previewSkeleton(skeleton) {
+function previewSkeleton() {
+	let skeleton = poses[0].skeleton
 	// For every skeleton, loop through all body connections
 	for (let i = 0; i < skeleton.length; i++) {
 		let partA = skeleton[i][0];
@@ -193,7 +194,7 @@ function previewSkeleton(skeleton) {
 		monitor.push();
 		mirror(monitor)
 		// realign with mirrored video
-		monitor.translate(240,0);
+		monitor.translate(200,0);
 		monitor.stroke('#AFEEEE');
 		monitor.line(
 			partA.position.x,

@@ -2,6 +2,7 @@ function scene00() {
 	this.enter = function () {
 		dbg('scene00');
 		// -----clean-up
+		sample.size(668,500)
 		sample.hide();
 		// -----page layout
 		sketchCanvas.parent('#canvas-00');
@@ -22,7 +23,7 @@ function scene00() {
 			if (sample) {
 				monitor.push();
 				mirror(monitor);
-				monitor.image(sample, monitor.width / 2 - sample.width / 2, 0);
+				monitor.image(sample, -120,0)
 				monitor.pop();
 			}
 			if (poses[0]) {
@@ -66,17 +67,20 @@ function scene00() {
 			}
 		} else {
 			// loading animation while we wait
-			let r = cos(frameCount * 20) * 20;
 			background('#101010');
-			fill('#e0e0e0');
+			let r = cos(frameCount) * 50;
+			let l = sin(frameCount) * 50;
+			fill('#393939');
 			ellipse(width / 2, height / 2, r);
-			monitor.background('#101010');
-			monitor.fill('#e0e0e0');
-			monitor.ellipse(width / 2, height / 2, r);
+			fill('#595959');
 			textAlign(CENTER, CENTER);
-			text('Loading', width / 2, height / 2 + 34);
+			// text('Loading', width / 2, height -34);
+			monitor.background('#101010');
+			monitor.fill('#393939');
+			monitor.ellipse(width / 2, height / 2, l);
+			monitor.fill('#595959');
 			monitor.textAlign(CENTER, CENTER);
-			monitor.text('Loading', width / 2, height / 2 + 34);
+			// monitor.text('Loading', width / 2, height - 34);
 		}
 		if (par.frameRate) {
 			mirror();

@@ -1,7 +1,9 @@
 function scene03() {
 	// --enter
 	this.enter = function () {
-		isFaceapiStandby = false;
+		isFaceapiStandby = false
+	
+;
 		console.log('entering scene 03')
 		if (posenet) {
 			posenet.removeAllListeners();

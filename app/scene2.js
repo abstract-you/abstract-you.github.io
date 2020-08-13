@@ -8,8 +8,10 @@ function scene02() {
 			poses = null;
 			isPosenetReady = false;
 		}
+		sample.size(668, 500);
 		sample.hide();
 		// ----- reset state vars
+		if (history1.length === 0) history1 = samplePose;
 		history2 = [];
 		full = false;
 		rec = false;
@@ -17,10 +19,10 @@ function scene02() {
 		play = false;
 		// -----faceapi
 		isFaceapiStandby = false;
-		// kickstart face detection 
+		// kickstart face detection
 		// gotFaces() calls itelfs every frame while isFaceapiStandby is false
 		faceapi.detect(gotFaces);
-		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
+		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceLoaded);
 		// ----- page layout
 		sketchCanvas.parent('#canvas-02');
 		resizeCanvas(820, 820);
@@ -61,21 +63,27 @@ function scene02() {
 		translate(width, 0);
 		scale(-1, 1);
 		// render video on the monitor canvas and center it
-		// FIXME: center video
-		if (sample) monitor.image(sample, monitor.width / 2 - sample.width / 2, 0);
+		if (sample) {
+			monitor.push();
+			mirror(monitor);
+			monitor.image(sample, 180, 0);
+			monitor.pop();
+		}
 
 		// -----ready faceapi
 		if (isFaceapiLoaded) {
 			// -----live expressions
 			if (detections[0]) {
 				// -----setup
+				let currentShapeType = getShapeType()
 				// draw a graph of expression data and show the current top expression
 				// (completely independently from drawing the shape)
-				if (detections[0] && par.debug) previewExpression(detections);
+				if (detections[0] && par.debug) graphExpressions(detections);
 				// show detection feedback on the webcam monitor
 				if (detections[0]) previewExpression(detections);
 
 				// -----play live shape
+				if (!full) replayShape2(history1, currentShapeType);
 
 				// -----record shape
 			}
@@ -110,13 +118,77 @@ function scene02() {
 
 //--------------------------------------------------------------------------------
 
-function makeShape2(history1, shapeStyle) {}
+// -----shape pipeline: step 2, stylize shape based on expression data 
+// Anchors target history points to redraw the basic shape from step 1. 
+// A shape type is determined from expression data.
+// Expanded shapes are drawn around anchors based on the shape type.
+// Convex hull is calculated from all points to determine outline path. Roundness is set based on shape type.
+function makeShape2(pose, shapeType) {
+	// console.log('shapeType')
+	// console.log(shapeType)
+	// set up anchors
+	Anchor.chasePose(pose);
+	// expand and get hull based on live shape type
+	let expanded = [];
+	let hullSet = [];
+	if (shapeType === 'softer') {
+		expanded = expandBlob();
+		hullSet = hull(expanded, par.roundnessSofter);
+	} else if (shapeType === 'harder') {
+		expanded = expandStar();
+		hullSet = hull(expanded, par.roundnessSharper);
+	}
+	// console.log('expanded:', expanded)
+	// console.log('hullSet:', hullSet)
+	// a hack, but it looks better than just doing endShape(CLOSE)
+	hullSet.push(hullSet[1]);
+	hullSet.push(hullSet[0]);
 
-function replayShape2(history1, shapeStyle) {}
+	// remap to canvas and apply padding
+	let padded = remapFromPose(hullSet);
+	// -----
+	// -----final render call
+	if (!par.hideShape) renderShape2(padded, shapeType);
+	// -----reference shapes
+	if (par.showExpanded || par.debug)
+		drawRef(remapFromPose(expanded), 'paleturquoise', 5);
+	if (par.showHullset || par.debug) drawRef(remapFromPose(hullSet), 'cyan', 5);
+	// (anchors draw their own reference after retaregtting)
+}
 
-function renderShape2(shape) {}
+// draw final shape outline
+function renderShape2(shape, shapeType) {
+	push();
+	stroke(0);
+	strokeWeight(par.shapeStrokeWeight);
+	noFill();
+	beginShape();
+	if (shapeType === 'softer') {
+		shape.forEach(p => {
+			curveVertex(p[0], p[1]);
+		});
+	} else if (shapeType === 'harder') {
+		shape.forEach(p => {
+			vertex(p[0], p[1]);
+		});
+	}
+	endShape();
+	pop();
+}
 
-function recordShape2(data) {}
+function recordShape2(data) {
+	history2.push(data)
+	updateCounter(par.recordFrames - history2.length);
+	if (history2.length > par.recordFrames) {
+		dbg('recorded ' + par.recordFrames + ' frames');
+		finishRecording();
+	}
+}
+
+function replayShape2(history, expression) {
+	let cp = frameCount % history.length;
+	makeShape2(history[cp], expression);
+}
 
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
@@ -311,143 +383,6 @@ function star(x, y, radius1, radius2, npoints) {
 	return newArr;
 }
 
-function softerBody(pose) {
-	// [{pos,part}...]
-	// Needs an array of objects that have position.x,position.y,part
-	// Will add points around the skeleton to increase the surface area
-	let newArr = [];
-
-	// We'll use these later for the torso
-	let l1, l2, r1, r2;
-
-	/*  
-
-	point,
-	i = 0,
-	angles = par.angles,
-	minR = 5,
-	maxR = 100,
-	maxX = 2,
-	maxY = 2,
-	maxOff = par.phase,
-	effect = par.effect
-
-	First argument is the point to expand. 
-	Second argument is the distance between
-	each point in angles (for example, an angle distance of 1 will add 360
-	points). 
-	Next two arguments are minimum and maxium radius. 
-	Fifth and sixth arguments control how fast the shape will oscilate within 
-	the min/max radius values.
-	Seventh argument is the maximum phase offset (higher values make the shape 
-	appear to rotate.)
-	Eighth argument is an iterator used for the noise function.
-	Last argument is a modifier applied to every point for adding jitter.
-
-
-	*/
-	pose.forEach((p, i) => {
-		switch (p.part) {
-			case 'nose':
-				let tempNose = {};
-				newArr = newArr.concat(expandBlob(p, 1, 10, 100));
-				break;
-			case 'leftEar':
-			case 'rightEar':
-				newArr.push([p.position.x, p.position.y]);
-				break;
-			case 'leftEye':
-			case 'rightEye':
-				newArr.push([p.position.x, p.position.y]);
-				break;
-			// Arms
-			case 'leftShoulder':
-				l1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 1, 10, 50, 50, 20, -1));
-				break;
-			case 'rightShoulder':
-				r1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 1, 10, 50, 50, 20, -1));
-				break;
-			case 'leftElbow':
-			case 'rightElbow':
-			case 'leftWrist':
-			case 'rightWrist':
-			case 'leftHip':
-				l2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p));
-				break;
-			case 'rightHip':
-				r2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p));
-				break;
-			// case 'leftKnee':
-			// case 'rightKnee':
-			// case 'leftAnkle':
-			// case 'rightAnkle':
-			default:
-				newArr.push([p.position.x, p.position.y]);
-				break;
-		}
-	});
-
-	// Torso
-	let leftSide = p5.Vector.lerp(l1, l2, 0.5);
-	let rightSide = p5.Vector.lerp(r1, r2, 0.5);
-	let middle1 = p5.Vector.lerp(l1, r1, 0.5);
-	let middle2 = p5.Vector.lerp(l2, r2, 0.5);
-
-	newArr = newArr.concat(expandBlob(leftSide));
-	newArr = newArr.concat(expandBlob(rightSide));
-	newArr = newArr.concat(expandBlob(middle1));
-	newArr = newArr.concat(expandBlob(middle2));
-
-	return newArr;
-}
-
-function expandBlob(
-	point,
-	angles = par.angles,
-	minR = 5,
-	maxR = 100,
-	maxX = 2,
-	maxY = 2,
-	maxOff = par.phase,
-	effect = par.effect
-) {
-	let x, y;
-	let px, py;
-	let newArr = [];
-	if (point.x) {
-		px = point.x;
-		py = point.y;
-	} else if (point.position) {
-		px = point.position.x;
-		py = point.position.y;
-	} else if (point[0]) {
-		px = point[0];
-		py = point[1];
-	}
-	for (let a = 0; a < 360; a += par.angles) {
-		let xoff = map(cos(a + phase), -1, 1, 0, par.maxY * par.effect);
-		let yoff = map(sin(a + phase), -1, 1, 0, par.maxX * par.effect);
-		let r = map(
-			noise(xoff, yoff, zoff),
-			0,
-			1,
-			par.minR * par.effect,
-			par.maxR * par.effect
-		);
-		x = px + r * cos(a);
-		y = py + r * sin(a);
-		newArr.push([x, y]);
-	}
-	let pOff = map(noise(zoff), 0, 1, 0, par.phase * par.effect);
-	phase += pOff;
-	zoff += par.zNoiseOffset;
-	return newArr;
-}
-
 // draws an expression graph for the first detected face at top left of canvas
 // show current expression on the bottom of the canvas
 function graphExpressions(faces) {
@@ -479,7 +414,8 @@ function previewExpression(faces) {
 	let box = faces[0].detection.box;
 	monitor.stroke('blue');
 	monitor.noFill();
-	monitor.rect(box.x, box.y, box.width, box.height);
+	// manually mirrorring back so we don't mess up the text
+	monitor.rect(monitor.width - box.x, box.y, box.width, box.height);
 	monitor.noStroke();
 	monitor.fill('red');
 	monitor.push();
@@ -487,7 +423,7 @@ function previewExpression(faces) {
 	// monitor.scale(-1, 1);
 	monitor.text(
 		round(score * 100, 2) + ' ' + current,
-		box.bottomLeft.x,
+		monitor.width - box.bottomLeft.x,
 		box.bottomLeft.y + 20
 	);
 	monitor.pop();
@@ -536,31 +472,8 @@ function checkFaceApi() {
 		mirror(); // Unmirror so we can write in the right direction
 		textAlign(CENTER);
 		textSize(14);
-		text('Waiting for faceapi', width / 2, height / 2);
+		text('Loading', width / 2, height - 54);
 		pop();
-	}
-}
-
-// Takes pose history, creates an array of expanded points based on shape type
-function prepareShape(history, shapeType) {
-	let newArr = [];
-	if (shapeType === 'softer') {
-		history.forEach(p => {
-			newArr.push(softerBody(p));
-		});
-	} else {
-		history.forEach(p => {
-			newArr.push(sharperBody(p));
-		});
-	}
-	return newArr;
-}
-
-function normalizeExpression(expression) {
-	if (expression[1] > 0.01) {
-		return expression[1];
-	} else {
-		return 0.01;
 	}
 }
 
@@ -584,4 +497,50 @@ function getShapeType() {
 		type = 'softer';
 	}
 	return type;
+}
+
+// utitlity functions to handle all the different body parts without cluttering up the main code
+
+function expandStar() {
+	let newArr = [];
+	newArr = newArr.concat(anchors.nose.starify(3));
+	newArr = newArr.concat(anchors.leftEar.starify());
+	newArr = newArr.concat(anchors.rightEar.starify());
+	newArr = newArr.concat(anchors.leftShoulder.starify(2));
+	newArr = newArr.concat(anchors.rightShoulder.starify(2));
+	newArr = newArr.concat(anchors.leftElbow.starify());
+	newArr = newArr.concat(anchors.rightElbow.starify());
+	newArr = newArr.concat(anchors.leftWrist.starify());
+	newArr = newArr.concat(anchors.rightWrist.starify());
+	newArr = newArr.concat(anchors.leftHip.starify(2));
+	newArr = newArr.concat(anchors.rightHip.starify(2));
+	newArr = newArr.concat(anchors.leftKnee.starify());
+	newArr = newArr.concat(anchors.rightKnee.starify());
+	newArr = newArr.concat(anchors.leftAnkle.starify());
+	newArr = newArr.concat(anchors.rightAnkle.starify());
+	// console.log('expandStar')
+	// console.log(newArr)
+	return newArr;
+}
+
+function expandBlob() {
+	let newArr = [];
+	newArr = newArr.concat(anchors.nose.blobify(3));
+	newArr = newArr.concat(anchors.leftEar.blobify());
+	newArr = newArr.concat(anchors.rightEar.blobify());
+	newArr = newArr.concat(anchors.leftShoulder.blobify(2));
+	newArr = newArr.concat(anchors.rightShoulder.blobify(2));
+	newArr = newArr.concat(anchors.leftElbow.blobify());
+	newArr = newArr.concat(anchors.rightElbow.blobify());
+	newArr = newArr.concat(anchors.leftWrist.blobify());
+	newArr = newArr.concat(anchors.rightWrist.blobify());
+	newArr = newArr.concat(anchors.leftHip.blobify(2));
+	newArr = newArr.concat(anchors.rightHip.blobify(2));
+	newArr = newArr.concat(anchors.leftKnee.blobify());
+	newArr = newArr.concat(anchors.rightKnee.blobify());
+	newArr = newArr.concat(anchors.leftAnkle.blobify());
+	newArr = newArr.concat(anchors.rightAnkle.blobify());
+	// console.log('expandBlob')
+	// console.log(newArr)
+	return newArr;
 }

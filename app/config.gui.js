@@ -1,6 +1,6 @@
 class Paramaterize {
 	constructor() {
-		this.scene = '1';
+		this.scene = '2';
 		this.recordFrames = 900; // 900 frames is about 15 seconds
 		this.preRecCounterFrames = 20; // 240 frames is about 4 seconds
 
@@ -12,6 +12,24 @@ class Paramaterize {
 		this.ellipseMinRadius = 38;
 		this.ellipseMaxRadius = 40;
 		this.ellipseIncrement = 60;
+		this.step1Roundness = 150;
+
+		// -----scene01 blob/star
+		// blob
+		this.roundnessSofter = 120;
+		this.blobAngleInc = 10
+		this.blobMinRadius = 10
+		this.blobMaxRadius = 200
+		this.blobMaxXNoise = 10
+		this.blobMaxYNoise = 10
+		this.blobPhaseShift = .01
+		this.blobZOff = .01
+		// star
+		this.roundnessSharper = 80;
+		this.starPoints = 9;
+		this.starInternalRadius = 50
+		this.starExternalRadius = 100
+		this.starNoiseStep = 0.01
 
 		this.dx = 380;
 		this.dy = 0;
@@ -38,15 +56,9 @@ class Paramaterize {
 		this.maxSoundLevel = -550;
 		this.voiceScaleModifier = 1;
 		this.shapeStrokeWeight = 3.5;
-		this.roundnessSharper = 80;
-		this.roundnessSofter = 120;
-		this.step1Roundness = 150;
 		this.roundness3 = 150;
 		this.angles = 1;
 		this.emotionalScale = 0.5;
-		this.innerStar = 100;
-		this.outerStar = 200;
-		this.starPoints = 9;
 		this.noseOnly = false;
 		this.useSamplePose = true;
 		this.debug = true;

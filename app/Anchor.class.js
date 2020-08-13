@@ -12,9 +12,9 @@ class Anchor {
 		this.starYOff = 0.0;
 		this.ellipseXOff = 0.0;
 		this.ellipseYOff = 0.0;
-		this.seed1 = random(1000);
-		this.seed2 = random(1000);
-		this.seed3 = random(1000);
+		this.blobSeed = random(1000);
+		this.starSeed1 = random(1000);
+		this.starSeed2 = random(1000);
 		this.topSpeed = par.topSpeed;
 		this.maxAcc = par.maxAcc;
 	}
@@ -114,28 +114,27 @@ class Anchor {
 		return newArr;
 	}
 
-	blobify() {
+	blobify(modifier=1) {
 		let px = this.position.x;
 		let py = this.position.y;
 		let x, y;
 		let newArr = [];
 
-		for (let a = 0; a < 360; a += par.angles) {
-			let xoff = map(cos(a + this.phase), -1, 1, 0, par.maxY);
-			let yoff = map(sin(a + this.phase), -1, 1, 0, par.maxX);
+		for (let a = 0; a < 360; a += par.blobAngleInc) {
+			let xoff = map(cos(a + this.phase), -1, 1, 0, par.blobMaxXNoise);
+			let yoff = map(sin(a + this.phase), -1, 1, 0, par.blobMaxYNoise);
 
-			noiseSeed(this.seed1);
+			noiseSeed(this.blobSeed);
 			let n = noise(xoff, yoff, this.zoff);
 
-			let r = map(n, 0, 1, par.minRadius, par.maxRadius);
-
+			let r = map(n, 0, 1, par.blobMinRadius, par.blobMaxRadius)*modifier; 
 			x = px + r * cos(a);
 			y = py + r * sin(a);
 
 			newArr.push([x, y]);
 		}
-		this.phase += par.maxPhaseShift;
-		this.zoff = par.maxZOff;
+		this.phase += par.blobPhaseShift;
+		this.zoff = par.blobZOff;
 		return newArr;
 	}
 
@@ -144,27 +143,28 @@ class Anchor {
 		let y = this.position.y;
 		let newArr = [];
 
-		let offStep = 0.01;
-		let radius2 = par.externalRadius * modifier;
-		let npoints = par.starPoints;
+		let offStep = par.starNoiseStep
+		let radius1 = par.starInternalRadius * modifier;
+		let radius2 = par.starExternalRadius * modifier;
+		let npoints = par.starPoints * modifier;
 
 		push();
 		angleMode(RADIANS);
 		let angle = TWO_PI / npoints;
 		let halfAngle = angle / 2.0;
 		for (let a = 0; a < TWO_PI; a += angle) {
-			noiseSeed(this.seed2);
+			noiseSeed(this.starSeed1);
 			let sx =
 				map(noise(this.starXOff, this.starYOff), 0, 1, -5, 5) +
 				x +
 				cos(a) * radius2;
-			// this.starXOff += offStep;
-			noiseSeed(this.seed3);
+			this.starXOff += offStep;
+			noiseSeed(this.starSeed2);
 			let sy =
 				map(noise(this.starXOff, this.starYOff), 0, 1, -5, 5) +
 				y +
 				sin(a) * radius2;
-			// this.starYOff += offStep;
+			this.starYOff += offStep;
 			newArr.push([sx, sy]);
 			sx = x + cos(a + halfAngle) * radius1;
 			sy = y + sin(a + halfAngle) * radius1;
