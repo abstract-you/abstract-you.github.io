@@ -1,6 +1,6 @@
 function scene01() {
 	this.enter = function () {
-		dbg(scene01);
+		dbg('scene01');
 		// ----- clean-up from previous scenes
 		noseAnchor = '';
 		// resize video for a larger preview this time
@@ -33,7 +33,7 @@ function scene01() {
 		redoButton = select('#redo-01');
 		redoButton.mousePressed(() => mgr.showScene(scene01));
 		redoButton.hide();
-		// rehook button for this scene, and hide for now
+		// rehook next button for this scene, and hide for now
 		nextButton = select('#next-button-01');
 		nextButton.mousePressed(() => mgr.showScene(scene02));
 		nextButton.hide();
@@ -47,20 +47,23 @@ function scene01() {
 		// show a dark background on the webcam monitor until the webcam feed starts
 		monitor.background(0);
 		// mirror the canvas to match the mirrored video from the camera
-		mirror();
+		translate(width, 0);
+		scale(-1, 1);
 		// render video on the monitor canvas and center it
-		// TODO: be smarter about adapting to different video sources
-		if (sample) monitor.image(sample, -62, 0);
+		// FIXME: center video
+		if (sample) monitor.image(sample, monitor.width / 2 - sample.width / 2, 0);
+
 		// -----live poses
 		if (poses) {
 			if (poses[0]) {
 				let pose = poses[0].pose.keypoints;
 				let skeleton = poses[0].skeleton;
+
 				// -----setup
 				// show the posenet skeleton on the monitor canvas
 				if (skeleton[0] && !preroll) previewSkeleton(skeleton);
 				// updates proportions in global variables
-				deriveProportions(pose);
+				// deriveProportions(pose);
 				// -----
 				// -----play live shape
 				// play a live shape when there is no recording
@@ -80,7 +83,7 @@ function scene01() {
 		if (preroll) playPreroll();
 		// -----debugging
 		// shows framerate in the corner of the canvas for debugging purposes
-		if (par.frameRate) fps();
+		if (par.frameRate || par.debug) fps();
 	};
 }
 

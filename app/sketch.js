@@ -379,6 +379,10 @@ function startPreroll() {
 	recButton.mousePressed(finishRecording);
 }
 
+function noPreroll() {
+	startRecording();
+}
+
 // TODO: make sure cancel still works though...
 // function cancelRecording() {
 // 	resetRecVariables();
@@ -395,9 +399,6 @@ function startPreroll() {
 // 	}
 // }
 
-function noPreroll() {
-	startRecording();
-}
 
 function startRecording() {
 	preroll = false;
@@ -486,6 +487,7 @@ function drawRef(points, color, weight) {
 	pop();
 }
 
+// wrapper for console.log that only fires if debug is true in dat.gui
 function dbg(message) {
 	if (par.debug) console.log(message);
 }

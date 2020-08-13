@@ -1,80 +1,112 @@
 function scene02() {
-	// --enter
 	this.enter = function () {
+		dbg('scene02');
+		// ----- clean-up from previous scenes
+		noseAnchor = '';
 		if (posenet) {
 			posenet.removeAllListeners();
 			poses = null;
 		}
+		// ----- reset state vars
+		history2 = [];
+		full = false;
+		rec = false;
+		preroll = false;
+		play = false;
+		// -----faceapi
 		faceapiStandby = false;
 		faceapi.detect(gotFaces);
 		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
-		history2 = [];
-	full = false;
-	rec = false;
-	preroll = false;
-	play = false;
-	phase = 0.0;
-		chooseScene('#scene-02');
-		canvas.parent('#canvas-02');
+		// ----- page layout
+		sketchCanvas.parent('#canvas-02');
 		resizeCanvas(820, 820);
-		vf.parent('#webcam-monitor-02');
-
-
+		// show preview in secondary canvas
+		monitor.parent('#webcam-monitor-02');
+		monitor.show();
+		// ----- rewire ui
+		// rehook and reset and show record button
 		recButton = select('#record-button-02');
 		recButton.html('Record');
-		recButton.removeClass('primary');
 		recButton.removeClass('rec');
-		recButton.removeClass('preroll');
-		recButton.mousePressed(() => {
-			noPreroll();
-		});
+		recButton.mousePressed(() => startRecording());
 		recButton.show();
+		// reset and show counter
 		counterButton = select('#counter-02');
 		counterButton.show();
+		// rehook button for this scene, and hide for now
 		redoButton = select('#redo-02');
-		redoButton.mousePressed(() => {
-			mgr.showScene(scene02);
-		});
+		redoButton.mousePressed(() => mgr.showScene(scene02));
 		redoButton.hide();
+		// rehook next button for this scene, and hide for now
 		nextButton = select('#next-button-02');
-		nextButton.mousePressed(() => {
-			mgr.showScene(scene03);
-		});
-		select('#next-button-03').mousePressed(()=>{
-			mgr.showScene(scene03)
-		})
+		nextButton.mousePressed(() => mgr.showScene(scene03));
 		nextButton.hide();
+		// ----- scene management
+		chooseScene('#scene-02');
 	};
 
 	// --draw
 	this.draw = function () {
-		background('#f9f9f9');
-		mirror(); // Mirror canvas to match mirrored video
-		// The preview is 500x470 but the cam feed is 627x470
-		if (sample) vf.image(sample, -50, 0);
-		// if (par.showHUD) expressionReference();
+		// -----prepare the scene
+		background(colors.primary);
+		// show a dark background on the webcam monitor until the webcam feed starts
+		monitor.background(0);
+		// mirror the canvas to match the mirrored video from the camera
+		translate(width, 0);
+		scale(-1, 1);
+		// render video on the monitor canvas and center it
+		// FIXME: center video
+		if (sample) monitor.image(sample, monitor.width / 2 - sample.width / 2, 0);
+
+		// -----live faceapi expression
 		if (faceapiLoaded) {
 			// First just the graph
 			if (detections[0] && par.debug) graphExpressions();
+			// -----live shape
 			if (!full && history1[0] && detections[0]) {
-				// Play the recording from the previous step with expressions applied
-				// Record into
 				playLiveShape2(history1);
+				// -----recorded shape
 			} else if (full && history2[0]) {
-				// Play the recording	from this step (using the logic from the next step)
 				playHistoryShape2(history1, analyzeExpressionHistory(history2));
-				// playShape3(history2);
-			} else if (par.useSamplePose) {
-				// Play a prerecorded pose
-				playLiveShape2(samplePose);
+				// Show a notice if we have to wait for the api
+			} else {
+				checkFaceApi();
 			}
-		} else {
-			// Show a notice if we have to wait for the api
-			checkFaceApi();
+
+			// -----preroll
+			// preroll plays a countdown on the monitor before recording starts
+			if (preroll) noPreroll();
+			// -----debugging
+			// shows framerate in the corner of the canvas for debugging purposes
+			if (par.frameRate) fps();
 		}
-		if (par.frameRate) fps();
 	};
 }
+
+//-------------------------------------------------------------------------------- 
+
+function makeShape2(history1,shapeStyle) {
+
+}
+
+function replayShape2(history1,shapeStyle) {
+
+}
+
+function renderShape2(shape) {
+
+}
+
+function recordShape2(data) {
+
+}
+
+//-------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------- 
 
 // Plays the history from step1 and applies expression data on top of it
 // Gets loaded with `history1` which is an array of posenet poses
