@@ -11,7 +11,15 @@ function scene02() {
 		sample.size(668, 500);
 		sample.hide();
 		// ----- reset state vars
-		if (history1.length === 0) history1 = samplePose;
+		if (history1.length === 0) {
+			recordedPose.forEach(p=>{
+				if (p) {
+				console.log(p)
+				history1.push(p.pose.keypoints)} else {
+					console.log('no p')
+				}
+			})
+		}
 		history2 = [];
 		full = false;
 		rec = false;
@@ -22,7 +30,7 @@ function scene02() {
 		// kickstart face detection
 		// gotFaces() calls itelfs every frame while isFaceapiStandby is false
 		faceapi.detect(gotFaces);
-		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceLoaded);
+		// if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceLoaded);
 		// ----- page layout
 		sketchCanvas.parent('#canvas-02');
 		resizeCanvas(820, 820);
@@ -66,7 +74,7 @@ function scene02() {
 		if (sample) {
 			monitor.push();
 			mirror(monitor);
-			monitor.image(sample, 180, 0);
+			monitor.image(sample, 180+par.videoSync, 0);
 			monitor.pop();
 		}
 
@@ -75,7 +83,8 @@ function scene02() {
 			// -----live expressions
 			if (detections[0]) {
 				// -----setup
-				let currentShapeType = getShapeType()
+				let currentShapeType = getShapeType();
+				if (par.lockStar) currentShapeType = 'sharper'
 				// draw a graph of expression data and show the current top expression
 				// (completely independently from drawing the shape)
 				if (detections[0] && par.debug) graphExpressions(detections);
@@ -91,6 +100,12 @@ function scene02() {
 			// -----replay record shape
 
 			// -----admin
+			if (par.frameRate || par.debug) {
+				push();
+				mirror();
+				fps();
+				pop();
+			}
 
 			// // -----live shape
 			// if (!full && history1[0] && detections[0]) {
@@ -118,14 +133,17 @@ function scene02() {
 
 //--------------------------------------------------------------------------------
 
-// -----shape pipeline: step 2, stylize shape based on expression data 
-// Anchors target history points to redraw the basic shape from step 1. 
+// -----shape pipeline: step 2, stylize shape based on expression data
+// Anchors target history points to redraw the basic shape from step 1.
 // A shape type is determined from expression data.
 // Expanded shapes are drawn around anchors based on the shape type.
 // Convex hull is calculated from all points to determine outline path. Roundness is set based on shape type.
 function makeShape2(pose, shapeType) {
-	// console.log('shapeType')
-	// console.log(shapeType)
+	// console.log('makeShape2');
+	// console.log('pose');
+	// console.log(pose);
+	// console.log('shapeType');
+	// console.log(shapeType);
 	// set up anchors
 	Anchor.chasePose(pose);
 	// expand and get hull based on live shape type
@@ -134,9 +152,12 @@ function makeShape2(pose, shapeType) {
 	if (shapeType === 'softer') {
 		expanded = expandBlob();
 		hullSet = hull(expanded, par.roundnessSofter);
-	} else if (shapeType === 'harder') {
+	} else if (shapeType === 'sharper') {
 		expanded = expandStar();
+		// console.log(expanded)
 		hullSet = hull(expanded, par.roundnessSharper);
+	} else {
+		console.error('bad shape type from makeShape2');
 	}
 	// console.log('expanded:', expanded)
 	// console.log('hullSet:', hullSet)
@@ -167,17 +188,19 @@ function renderShape2(shape, shapeType) {
 		shape.forEach(p => {
 			curveVertex(p[0], p[1]);
 		});
-	} else if (shapeType === 'harder') {
+	} else if (shapeType === 'sharper') {
 		shape.forEach(p => {
 			vertex(p[0], p[1]);
 		});
+	} else {
+		console.error('bad shape type')
 	}
 	endShape();
 	pop();
 }
 
 function recordShape2(data) {
-	history2.push(data)
+	history2.push(data);
 	updateCounter(par.recordFrames - history2.length);
 	if (history2.length > par.recordFrames) {
 		dbg('recorded ' + par.recordFrames + ' frames');
@@ -503,7 +526,7 @@ function getShapeType() {
 
 function expandStar() {
 	let newArr = [];
-	newArr = newArr.concat(anchors.nose.starify(3));
+	newArr = newArr.concat(anchors.nose.starify(2.5));
 	newArr = newArr.concat(anchors.leftEar.starify());
 	newArr = newArr.concat(anchors.rightEar.starify());
 	newArr = newArr.concat(anchors.leftShoulder.starify(2));
@@ -525,19 +548,20 @@ function expandStar() {
 
 function expandBlob() {
 	let newArr = [];
-	newArr = newArr.concat(anchors.nose.blobify(3));
-	newArr = newArr.concat(anchors.leftEar.blobify());
-	newArr = newArr.concat(anchors.rightEar.blobify());
-	newArr = newArr.concat(anchors.leftShoulder.blobify(2));
-	newArr = newArr.concat(anchors.rightShoulder.blobify(2));
-	newArr = newArr.concat(anchors.leftElbow.blobify());
-	newArr = newArr.concat(anchors.rightElbow.blobify());
+	// blobify() 
+	newArr = newArr.concat(anchors.nose.blobify(2.2));
+	newArr = newArr.concat(anchors.leftEar.blobify(.8));
+	newArr = newArr.concat(anchors.rightEar.blobify(.8));
+	newArr = newArr.concat(anchors.leftShoulder.blobify(1.5));
+	newArr = newArr.concat(anchors.rightShoulder.blobify(1.5));
+	newArr = newArr.concat(anchors.leftElbow.blobify(1.3));
+	newArr = newArr.concat(anchors.rightElbow.blobify(1.3));
 	newArr = newArr.concat(anchors.leftWrist.blobify());
 	newArr = newArr.concat(anchors.rightWrist.blobify());
-	newArr = newArr.concat(anchors.leftHip.blobify(2));
-	newArr = newArr.concat(anchors.rightHip.blobify(2));
-	newArr = newArr.concat(anchors.leftKnee.blobify());
-	newArr = newArr.concat(anchors.rightKnee.blobify());
+	newArr = newArr.concat(anchors.leftHip.blobify(1.5));
+	newArr = newArr.concat(anchors.rightHip.blobify(1.5));
+	newArr = newArr.concat(anchors.leftKnee.blobify(1.3));
+	newArr = newArr.concat(anchors.rightKnee.blobify(1.3));
 	newArr = newArr.concat(anchors.leftAnkle.blobify());
 	newArr = newArr.concat(anchors.rightAnkle.blobify());
 	// console.log('expandBlob')

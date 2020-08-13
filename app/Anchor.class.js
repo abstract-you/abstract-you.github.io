@@ -115,6 +115,7 @@ class Anchor {
 	}
 
 	blobify(modifier=1) {
+		modifier = modifier * par.blobModifier
 		let px = this.position.x;
 		let py = this.position.y;
 		let x, y;
@@ -139,6 +140,7 @@ class Anchor {
 	}
 
 	starify(modifier = 1) {
+		modifier = modifier * par.starModifier
 		let x = this.position.x;
 		let y = this.position.y;
 		let newArr = [];
@@ -146,7 +148,7 @@ class Anchor {
 		let offStep = par.starNoiseStep
 		let radius1 = par.starInternalRadius * modifier;
 		let radius2 = par.starExternalRadius * modifier;
-		let npoints = par.starPoints * modifier;
+		let npoints = par.starPoints;
 
 		push();
 		angleMode(RADIANS);
@@ -155,13 +157,13 @@ class Anchor {
 		for (let a = 0; a < TWO_PI; a += angle) {
 			noiseSeed(this.starSeed1);
 			let sx =
-				map(noise(this.starXOff, this.starYOff), 0, 1, -5, 5) +
+				map(noise(this.starXOff, this.starYOff), 0, 1, -par.starNoiseRange, par.starNoiseRange) +
 				x +
 				cos(a) * radius2;
 			this.starXOff += offStep;
 			noiseSeed(this.starSeed2);
 			let sy =
-				map(noise(this.starXOff, this.starYOff), 0, 1, -5, 5) +
+				map(noise(this.starXOff, this.starYOff), 0, 1, -par.starNoiseRange, par.starNoiseRange) +
 				y +
 				sin(a) * radius2;
 			this.starYOff += offStep;

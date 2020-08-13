@@ -51,20 +51,9 @@ function scene01() {
 		if (sample) {
 			monitor.push();
 			mirror(monitor);
-			monitor.image(
-				sample,
-				sample.width/2, 
-				0,
-				monitor.width,
-				monitor.height,
-				sample.width-monitor.width, //120
-				0,
-				monitor.width,
-				sample.height
-			);
+			monitor.image(sample, 180+par.videoSync, 0);
 			monitor.pop();
 		}
-
 		// -----live poses
 		push();
 		mirror();
