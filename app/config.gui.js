@@ -2,7 +2,7 @@ class Paramaterize {
 	constructor() {
 		this.scene = '0';
 		this.recordFrames = 900; // 900 frames is about 15 seconds
-		this.preRecCounterFrames = 20; // 240 frames is about 4 seconds
+		this.preRecCounterFrames = 240; // 240 frames is about 4 seconds
 		
 		// ----- general
 		this.frameRate = 60; // TODO do I still need this?
