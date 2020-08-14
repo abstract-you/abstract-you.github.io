@@ -1,6 +1,7 @@
 function scene00() {
 	this.enter = function () {
 		dbg('scene00');
+		frameRate(par.frameRate)
 		// -----clean-up
 		sample.size(668,500)
 		sample.hide();
@@ -17,6 +18,7 @@ function scene00() {
 
 	// --0draw
 	this.draw = function () {
+		frameRate(par.frameRate)
 		background(255);
 		if (isWebcamReady && isFaceApiReady && isPosenetReady) {
 			// render video on the monitor canvas, centered and flipped
@@ -82,10 +84,10 @@ function scene00() {
 			monitor.textAlign(CENTER, CENTER);
 			// monitor.text('Loading', width / 2, height - 34);
 		}
-		if (par.frameRate) {
-			mirror();
+		if (par.frameRate|| par.debug) {
+			// mirror();
 			fps();
-			mirror(); // Yeah, perfectly reasonable solution...
+			// mirror(); // Yeah, perfectly reasonable solution...
 		}
 	};
 }

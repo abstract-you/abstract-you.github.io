@@ -1,10 +1,3 @@
-// let gifc = new CCapture({
-// 	framerate: 24, // TODO: investigate further
-// 	verbose: true,
-// 	format: 'gif',
-// 	workersPath: './lib/',
-// });
-
 let colors = {
 	primary: '#f9f9f9',
 };
@@ -95,6 +88,13 @@ let mic;
 let micLevel;
 let spectrum;
 let ampl;
+
+// let gifc = new CCapture({
+// 	framerate: 24, // TODO: investigate further
+// 	verbose: true,
+// 	format: 'gif',
+// 	workersPath: './lib/',
+// });
 
 // anchors with a basic physics engine to build the shape around
 // the anchors object stores anchors keyed by part name
@@ -190,6 +190,7 @@ function setup() {
 	select('#begin-button').mousePressed(() => {
 		mgr.showScene(scene01);
 	});
+	frameRate(par.frameRate)
 	// Very basic routing
 	sceneRouter();
 }
@@ -400,12 +401,12 @@ function chooseScene(sceneId) {
 	select(sceneId).removeClass('hidden');
 }
 
-// Use in draw() to show framerate in bottom left corner
+// Use in draw() to show framerate in bottom right corner
 function fps() {
 	push();
 	textSize(14);
 	fill(200);
-	text(floor(frameRate()), 20, height - 20);
+	text(floor(frameRate()), width-20, height - 20);
 	pop();
 }
 

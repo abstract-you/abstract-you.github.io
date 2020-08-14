@@ -1,6 +1,7 @@
 function scene01() {
 	this.enter = function () {
 		dbg('scene01');
+		frameRate(par.frameRate)
 		// ----- clean-up
 		noseAnchor = '';
 		sample.size(668,500)

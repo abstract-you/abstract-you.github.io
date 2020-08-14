@@ -1,6 +1,7 @@
 function scene02() {
 	this.enter = function () {
 		dbg('scene02');
+		frameRate(par.frameRate);
 		// ----- clean-up from previous scenes
 		noseAnchor = '';
 		if (posenet) {
@@ -10,16 +11,15 @@ function scene02() {
 		}
 		sample.size(668, 500);
 		sample.hide();
-		// ----- reset state vars
+		// -----load a prerecordeded dataset if there's nothing from step 1
+		// dancer.js should be a posenet recording of a person dancing. It
+		// also stores skeleton data so we're extracting just the poses first 
 		if (history1.length === 0) {
-			recordedPose.forEach(p=>{
-				if (p) {
-				console.log(p)
-				history1.push(p.pose.keypoints)} else {
-					console.log('no p')
-				}
-			})
+			recordedPose.forEach(p => {
+				if (p) history1.push(p.pose.keypoints);
+			});
 		}
+		// ----- reset state vars
 		history2 = [];
 		full = false;
 		rec = false;
@@ -74,7 +74,7 @@ function scene02() {
 		if (sample) {
 			monitor.push();
 			mirror(monitor);
-			monitor.image(sample, 180+par.videoSync, 0);
+			monitor.image(sample, 180 + par.videoSync, 0);
 			monitor.pop();
 		}
 
@@ -84,7 +84,7 @@ function scene02() {
 			if (detections[0]) {
 				// -----setup
 				let currentShapeType = getShapeType();
-				if (par.lockStar) currentShapeType = 'sharper'
+				if (par.lockStar) currentShapeType = 'sharper';
 				// draw a graph of expression data and show the current top expression
 				// (completely independently from drawing the shape)
 				if (detections[0] && par.debug) graphExpressions(detections);
@@ -98,6 +98,7 @@ function scene02() {
 			}
 
 			// -----replay record shape
+if (full) replayShape2(history1, analyzeExpressionHistory(history2));
 
 			// -----admin
 			if (par.frameRate || par.debug) {
@@ -106,22 +107,6 @@ function scene02() {
 				fps();
 				pop();
 			}
-
-			// // -----live shape
-			// if (!full && history1[0] && detections[0]) {
-			// 	playLiveShape2(history1);
-			// } else if (full && history2[0]) {
-			// 	// -----recorded shape
-			// 	playHistoryShape2(history1, analyzeExpressionHistory(history2));
-			// 	// Show a notice if we have to wait for the api
-
-			// 	// -----preroll
-			// 	// preroll plays a countdown on the monitor before recording starts
-			// 	if (preroll) noPreroll();
-			// 	// -----debugging
-			// 	// shows framerate in the corner of the canvas for debugging purposes
-			// 	if (par.frameRate) fps();
-			// }
 
 			// -----loading faceapi
 		} else {
@@ -193,7 +178,7 @@ function renderShape2(shape, shapeType) {
 			vertex(p[0], p[1]);
 		});
 	} else {
-		console.error('bad shape type')
+		console.error('bad shape type');
 	}
 	endShape();
 	pop();
@@ -548,10 +533,10 @@ function expandStar() {
 
 function expandBlob() {
 	let newArr = [];
-	// blobify() 
+	// blobify()
 	newArr = newArr.concat(anchors.nose.blobify(2.2));
-	newArr = newArr.concat(anchors.leftEar.blobify(.8));
-	newArr = newArr.concat(anchors.rightEar.blobify(.8));
+	newArr = newArr.concat(anchors.leftEar.blobify(0.8));
+	newArr = newArr.concat(anchors.rightEar.blobify(0.8));
 	newArr = newArr.concat(anchors.leftShoulder.blobify(1.5));
 	newArr = newArr.concat(anchors.rightShoulder.blobify(1.5));
 	newArr = newArr.concat(anchors.leftElbow.blobify(1.3));

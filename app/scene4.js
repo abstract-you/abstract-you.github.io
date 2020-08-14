@@ -1,16 +1,17 @@
 function scene04() {
 	// --enter
 	this.enter = function () {
+		frameRate(par.frameRate);
 		if (posenet) {
 			posenet.removeAllListeners();
 			poses = null;
 		}
 		isFaceapiStandby = true;
-	full = false;
-	rec = false;
-	preroll = false;
-	play = false;
-	phase = 0.0;	
+		full = false;
+		rec = false;
+		preroll = false;
+		play = false;
+		phase = 0.0;
 		select('body').addClass('light');
 
 		finalShapeType = analyzeExpressionHistory(history2);

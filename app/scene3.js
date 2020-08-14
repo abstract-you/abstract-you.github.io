@@ -1,69 +1,96 @@
 function scene03() {
-	// --enter
 	this.enter = function () {
-		isFaceapiStandby = false
-	
-;
-		console.log('entering scene 03')
+		dbg('scene03');
+		frameRate(par.frameRate);
+		// ----- clean-up from previous scenes
+		noseAnchor = '';
 		if (posenet) {
 			posenet.removeAllListeners();
 			poses = null;
+			isPosenetReady = false;
 		}
+		kample.size(668, 500);
+		sample.hide();
 		isFaceapiStandby = true;
-		startMic();
-		vf.hide();
 
-		finalShapeType = analyzeExpressionHistory(history2);
+		// -----load a prerecordeded dataset if there's nothing from step 1
+		// dancer.js should be a posenet recording of a person dancing. It
+		// also stores skeleton data so we're extracting just the poses first
+		if (history1.length === 0) {
+			recordedPose.forEach(p => {
+				if (p) history1.push(p.pose.keypoints);
+			});
+		}
 
-	full = false;
-	rec = false;
-	preroll = false;
-	play = false;
-	phase = 0.0;
+		// ----- reset state vars
 		history3 = [];
+		full = false;
+		rec = false;
+		preroll = false;
+		play = false;
 
-		chooseScene('#scene-03');
-		canvas.parent('#canvas-03');
+		// -----scene setup, start the mic and hide the webcam monitor
+		// get the shape type
+		startMic();
+		monitor.hide();
+		if (history2) {
+			finalShapeType = analyzeExpressionHistory(history2);
+		} else {
+			finalShapeType = 'softer';
+		}
+		// -----page layout
+		sketchCanvas.parent('#canvas-02');
 		resizeCanvas(820, 820);
 
+		// ----- rewire ui
+		// rehook and reset and show record button
 		recButton = select('#record-button-03');
 		recButton.html('Record');
-		recButton.removeClass('primary');
 		recButton.removeClass('rec');
-		recButton.removeClass('preroll');
-		recButton.mousePressed(() => {
-			noPreroll();
-		});
+		recButton.mousePressed(() => startRecording());
 		recButton.show();
+		// reset and show counter
 		counterButton = select('#counter-03');
+		// update recording time based on recording frames. assumes a recording time
+		// of less than 60 seconds...
+		counterButton.html('00:' + par.recordFrames / 60);
 		counterButton.show();
+		// rehook button for this scene, and hide for now
 		redoButton = select('#redo-03');
-		redoButton.mousePressed(() => {
-			mgr.showScene(scene03);
-		});
+		redoButton.mousePressed(() => mgr.showScene(scene03));
 		redoButton.hide();
+		// rehook next button for this scene, and hide for now
 		nextButton = select('#next-button-03');
-		nextButton.mousePressed(() => {
-			mgr.showScene(scene04);
-		});
+		nextButton.mousePressed(() => mgr.showScene(scene04));
 		nextButton.hide();
+		// ----- scene management
+		chooseScene('#scene-03');
 	};
 
-	// --3draw
-
 	this.draw = function () {
-		micLevel = mic.getLevel();
-
+		// -----prepare the frame
+		background(colors.primary);
 		background('#f9f9f9');
-
-		if (par.debug) graphVoice(micLevel);
-		mirror(); // Mirror canvas to match mirrored video
-
-		if (!full) {
-			playLiveShape3(history1, finalShapeType, micLevel);
+		// mirror the canvas to match the mirrored video from the camera
+		translate(width, 0);
+		scale(-1, 1);
+		// get a reading from the mic
+		micLevel = mic.getLevel();
+		if (micLevel) {
+			if (par.debug) graphVoice(micLevel);
+			// -----play live shape
+			if (!full) {
+				playLiveShape3(history1, finalShapeType, micLevel);
+			}
 		}
 		if (full) playHistoryShape3(history3, finalShapeType);
-		if (par.frameRate) fps();
+			// -----admin
+			if (par.frameRate || par.debug) {
+				push();
+				mirror();
+				fps();
+				pop();
+			}
 	};
 }
 

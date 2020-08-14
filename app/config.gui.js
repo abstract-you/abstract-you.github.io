@@ -3,25 +3,26 @@ class Paramaterize {
 		this.scene = '0';
 		this.recordFrames = 900; // 900 frames is about 15 seconds
 		this.preRecCounterFrames = 240; // 240 frames is about 4 seconds
-		
+
 		// ----- general
-		this.frameRate = 60; // TODO do I still need this?
+		this.frameRate = 60; 
+		this.showFrameRate = true; 
 		this.videoSync = 0;
 
 		// -----anchors
 		this.topSpeed = 20;
 		this.maxAcc = 10;
-		
+
 		// ----- scene01 ellipse
 		this.ellipseOffsetIncrement = 0.01;
-		this.ellipseMinRadius = 38;
-		this.ellipseMaxRadius = 40;
-		this.ellipseIncrement = 60;
-		this.step1Roundness = 150;
-		
-		// -----scene01
+		this.ellipseMinRadius = 50;
+		this.ellipseMaxRadius = 50;
+		this.ellipseIncrement = 40;
+		this.step1Roundness = 200;
+
+		// -----scene02
 		// Softer
-		this.roundnessSofter = 250
+		this.roundnessSofter = 250;
 		this.blobAngleInc = 24;
 		this.blobMinRadius = 1;
 		this.blobMaxRadius = 120;
@@ -31,14 +32,16 @@ class Paramaterize {
 		this.blobZOff = 0.002;
 		this.blobModifier = 1;
 		// Sharper
-		this.lockStar = false
+		this.lockStar = false;
 		this.roundnessSharper = 50;
 		this.starPoints = 5;
 		this.starInternalRadius = 35;
 		this.starExternalRadius = 70;
-		this.starNoiseRange = 50
+		this.starNoiseRange = 50;
 		this.starNoiseStep = 0.01;
-		this.starModifier = 1
+		this.starModifier = 1;
+
+		// -----scene03
 
 		this.hideShape = false;
 		this.referenceAnchorRadius = 10;
@@ -60,8 +63,7 @@ class Paramaterize {
 		this.emotionalScale = 0.5;
 		this.noseOnly = false;
 		this.useSamplePose = true;
-		this.debug = true;
-		this.frameRate = false;
+		this.debug = false;
 		this.phaseMultiplier = 0.1;
 		this.emotionalIntensity = 10;
 		this.noiseMax = 1;
@@ -105,7 +107,13 @@ class Paramaterize {
 }
 
 let par = new Paramaterize();
-let gui = new dat.GUI({ autoPlace: true });
+let gui = new dat.GUI({
+	autoPlace: true,
+	width: 350,
+	// load: getPresetJSON(),
+	preset: 'Preset1',
+});
+gui.remember(par)
 
 // -----scene routing
 let sceneGui = gui.add(par, 'scene', [0, 1, 2, 3, 4]);
@@ -113,6 +121,8 @@ sceneGui.onChange(() => sceneRouter());
 
 // -----important
 gui.add(par, 'debug');
+gui.add(par, 'frameRate', 1);
+gui.add(par, 'showFrameRate');
 gui.add(par, 'recordFrames');
 gui.add(par, 'preRecCounterFrames');
 gui.add(par, 'videoSync');
@@ -121,7 +131,8 @@ gui.add(par, 'maxAcc');
 
 // -----01scene
 let f01 = gui.addFolder('Step 01');
-f01.add(par, 'ellipseIncrement',2);
+f01.add(par, 'step1Roundness');
+f01.add(par, 'ellipseIncrement', 2);
 f01.add(par, 'ellipseMinRadius');
 f01.add(par, 'ellipseMaxRadius');
 f01.add(par, 'ellipseOffsetIncrement');
@@ -135,7 +146,7 @@ let f023 = gui.addFolder('Sharper shape');
 // -----02softer
 f022.add(par, 'blobModifier');
 f022.add(par, 'roundnessSofter');
-f022.add(par, 'blobAngleInc',2);
+f022.add(par, 'blobAngleInc', 2);
 f022.add(par, 'blobMinRadius');
 f022.add(par, 'blobMaxRadius');
 f022.add(par, 'blobMaxXNoise');
@@ -157,7 +168,6 @@ f023.add(par, 'starNoiseStep');
 // gui.add(par, 'showHUD');
 // gui.add(par, 'showExpanded');
 // gui.add(par, 'showCurves');
-// gui.add(par, 'frameRate');
 // gui.add(par, 'recordFrames');
 // gui.add(par, 'shapeStrokeWeight');
 // gui.add(par, 'preRecCounterFrames');
@@ -184,17 +194,16 @@ f023.add(par, 'starNoiseStep');
 // gui.add(par, 'shapeStrokeWeight');
 // gui.add(par, 'hideShape');
 // gui.add(par, 'referenceAnchorRadius');
-gui.close();
+gui.open();
 
-
-		// this.dx = 380;
-		// this.dy = 0;
-		// this.dwidth = 500;
-		// this.dheight = 500;
-		// this.sx = 0;
-		// this.sy = 0;
-		// this.swidth = 500;
-		// this.sheight = 480;
+// this.dx = 380;
+// this.dy = 0;
+// this.dwidth = 500;
+// this.dheight = 500;
+// this.sx = 0;
+// this.sy = 0;
+// this.swidth = 500;
+// this.sheight = 480;
 
 // gui.add(par, 'dx');
 // gui.add(par, 'dy');
