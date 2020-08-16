@@ -9,7 +9,7 @@ function scene03() {
 			poses = null;
 			isPosenetReady = false;
 		}
-		kample.size(668, 500);
+		sample.size(668, 500);
 		sample.hide();
 		isFaceapiStandby = true;
 
@@ -77,20 +77,25 @@ function scene03() {
 		// get a reading from the mic
 		micLevel = mic.getLevel();
 		if (micLevel) {
+			// mic reference
 			if (par.debug) graphVoice(micLevel);
+
 			// -----play live shape
 			if (!full) {
 				playLiveShape3(history1, finalShapeType, micLevel);
 			}
 		}
+
+		// -----play recorded shape
 		if (full) playHistoryShape3(history3, finalShapeType);
-			// -----admin
-			if (par.frameRate || par.debug) {
-				push();
-				mirror();
-				fps();
-				pop();
-			}
+
+		// -----admin
+		if (par.frameRate || par.debug) {
+			push();
+			mirror();
+			fps();
+			pop();
+		}
 	};
 }
 
@@ -102,7 +107,7 @@ function voiceNet(points, level) {
 		let offset = 0;
 		if (level) {
 			if (level[0]) {
-				offset = map(level[0], 0, 255, par.levelHigh, par.levelLow);
+				offset = map(level[0], 0, 255, par.voiceScaleMax, par.voiceScaleMin);
 			}
 		}
 		x = p[0] + phase + offset * sin(i);

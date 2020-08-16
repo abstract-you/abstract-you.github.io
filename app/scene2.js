@@ -13,7 +13,7 @@ function scene02() {
 		sample.hide();
 		// -----load a prerecordeded dataset if there's nothing from step 1
 		// dancer.js should be a posenet recording of a person dancing. It
-		// also stores skeleton data so we're extracting just the poses first 
+		// also stores skeleton data so first we're extracting just the poses  
 		if (history1.length === 0) {
 			recordedPose.forEach(p => {
 				if (p) history1.push(p.pose.keypoints);

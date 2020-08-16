@@ -3,15 +3,20 @@ class Paramaterize {
 		this.scene = '0';
 		this.recordFrames = 900; // 900 frames is about 15 seconds
 		this.preRecCounterFrames = 240; // 240 frames is about 4 seconds
-
+		
 		// ----- general
 		this.frameRate = 60; 
 		this.showFrameRate = true; 
 		this.videoSync = 0;
-
+		
 		// -----anchors
 		this.topSpeed = 20;
 		this.maxAcc = 10;
+		
+		// -----referench shapes
+		this.hideShape = false;
+		this.referenceAnchorRadius = 10;
+		this.shapeStrokeWeight = 3.5;
 
 		// ----- scene01 ellipse
 		this.ellipseOffsetIncrement = 0.01;
@@ -42,22 +47,12 @@ class Paramaterize {
 		this.starModifier = 1;
 
 		// -----scene03
-
-		this.hideShape = false;
-		this.referenceAnchorRadius = 10;
-		this.showHUD = false;
-		this.levelLow = -50;
-		this.levelHigh = 50;
-		this.effect = 1;
-		this.phase = 0.0001;
-		this.minR = -100;
-		this.maxR = 200;
-		this.maxY = 111;
-		this.maxX = 111;
+		this.voiceScaleModifier = 1;
+		this.voiceScaleMin = -50;
+		this.voiceScaleMax = 50;
 		this.minSoundLevel = 300;
 		this.maxSoundLevel = -550;
-		this.voiceScaleModifier = 1;
-		this.shapeStrokeWeight = 3.5;
+
 		this.roundness3 = 150;
 		this.angles = 1;
 		this.emotionalScale = 0.5;
