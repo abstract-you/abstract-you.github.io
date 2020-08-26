@@ -1,21 +1,25 @@
-let colors = {
-	primary: '#f9f9f9',
-};
+let capturer = new CCapture({
+	framerate: 20,
+	format: 'gif',
+	workersPath: './lib/',
+});
+let gifFrames = 0;
+let gifc;
 
 // scene manager
 let mgr;
 
 // shape recording in three commulative steps
-// scene01 records anchor positions
+// step 1, anchor positions
 let history1 = [];
-// scene02 records top expressions
+// step 2, expression history
 let history2 = [];
-// scene03 records hull points
-// a final shape type is required for drawing
+// step 3, mic level history
 let history3 = [];
 // the final shape type is the most common expression from history2
-// TODO should this be a global variable?
 let finalShapeType;
+// the final scale is the average mic level from history3
+let finalScale;
 
 // will hold the canvas
 // contains the canvas DOM element in .canvas
@@ -26,8 +30,6 @@ let sketchCanvas;
 let monitor;
 // webcam video feed
 let sample;
-// let sampleWidth;
-// let sampleHeight;
 
 let phase = 0.0;
 let zoff = 0.0;
@@ -66,7 +68,7 @@ let posenetOptions = {
 	maxPoseDetections: 1,
 };
 
-// ratios for shape calibration (TODO)
+// ratios for shape calibration
 let eyeDist;
 let shoulderDist;
 let hipDist;
@@ -89,16 +91,8 @@ let micLevel;
 let spectrum;
 let ampl;
 
-// let gifc = new CCapture({
-// 	framerate: 24, // TODO: investigate further
-// 	verbose: true,
-// 	format: 'gif',
-// 	workersPath: './lib/',
-// });
-
 // anchors with a basic physics engine to build the shape around
 // the anchors object stores anchors keyed by part name
-// TODO: do we still need the name in the anchor itself?
 let anchors = {
 	nose: '',
 	leftEye: '',
@@ -120,8 +114,6 @@ let anchors = {
 };
 let noseAnchor;
 
-// TODO: use to build a skeleton when posenet doesn't provide one
-// (TODO: is there a setting to tweak in posenet to fix that?)
 const SKELETON = [
 	[11, 5],
 	[7, 5],
@@ -156,12 +148,14 @@ const RKNEE = 14;
 const LANKLE = 15;
 const RANKLE = 16;
 
+let colors = {
+	primary: '#f9f9f9',
+	dark: '#101010',
+};
+
 p5.disableFriendlyErrors = true;
 
 function setup() {
-	// required for making audio work for the microphone (in scene3)
-	getAudioContext().suspend();
-	// ----- dat.gui
 	// ----- scenemanager
 	mgr = new SceneManager();
 	mgr.addScene(scene00);
@@ -177,9 +171,11 @@ function setup() {
 	monitor = createGraphics(500, 470);
 	monitor.textFont('Space Mono');
 	monitor.background(255);
-	startWebcam();
+	if (!par.demoMode) startWebcam();
+	if (par.demoMode) getNewVideo('app/demo.mp4');
 	// start getting faceapi ready
-	if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceLoaded);
+	if (!isFaceApiReady && !par.demoMode)
+		faceapi = ml5.faceApi(sample, faceOptions, faceLoaded);
 	// Prepare anchors to chase posenet points
 	Object.keys(anchors).forEach(partName => {
 		let anchor = new Anchor(width / 2, height / 2, partName);
@@ -190,9 +186,11 @@ function setup() {
 	select('#begin-button').mousePressed(() => {
 		mgr.showScene(scene01);
 	});
-	frameRate(par.frameRate)
+	frameRate(par.frameRate);
 	// Very basic routing
 	sceneRouter();
+	// required for making audio work for the microphone (in scene3)
+	getAudioContext().suspend();
 }
 
 function draw() {
@@ -234,15 +232,19 @@ function startMic() {
 	userStartAudio();
 }
 
+function stopWebcam(webcam) {
+	if (webcam.elt.srcObject) {
+		webcam.elt.srcObject.getTracks().forEach(t => {
+			t.stop();
+		});
+	}
+}
 function startWebcam() {
 	sample = createCapture(VIDEO, webcamReady);
-	// TODO - too ugly
 }
 
 function webcamReady() {
 	isWebcamReady = true;
-	// sampleWidth = sample.width;
-	// sampleHeight = sample.height;
 	posenet = ml5.poseNet(sample, posenetOptions, modelReady);
 	posenet.on('pose', function (results) {
 		poses = results;
@@ -269,92 +271,26 @@ function gotFaces(error, result) {
 	if (!isFaceapiStandby) faceapi.detect(gotFaces);
 }
 
-// // Gets a posenet pose and returns distance between two points
-// function poseDist(pose, a, b) {
-// 	let left = createVector(pose[a].position.x, pose[a].position.y);
-// 	let right = createVector(pose[b].position.x, pose[b].position.y);
-// 	return p5.Vector.dist(left, right);
-// }
-
-// // Gets a posenet pose and returns eye distance
-// function checkEyeDist(pose) {
-// 	// Pose will look like [{part:'nose',position: {x: 0,y:0},score:.99}]
-// 	// 1	leftEye, 2	rightEye
-// 	let left = createVector(pose[1].position.x, pose[1].position.y);
-// 	let right = createVector(pose[2].position.x, pose[2].position.y);
-// 	return p5.Vector.dist(left, right);
-// }
-
-function drawAbstractShape() {
-	if (par.fillShape) {
-		stroke(0);
-		strokeWeight(par.shapeStrokeWeight);
-		fill(255);
-	} else {
-		stroke(0);
-		strokeWeight(par.shapeStrokeWeight);
-		noFill();
-	}
-	beginShape();
-	anchors.forEach(a => {
-		if (par.showCurves) {
-			curveVertex(a.position.x, a.position.y);
-		} else {
-			vertex(a.position.x, a.position.y);
-		}
-	});
-	endShape(CLOSE);
-}
-
-function startPreroll() {
-	preroll = true;
-	full = false;
-	recButton.addClass('rec');
-	recButton.html('Stop');
-	recButton.mousePressed(cancelRecording);
-}
-
-function noPreroll() {
-	startRecording();
-}
-
-// TODO: make sure cancel still works though...
-// function cancelRecording() {
-// 	resetRecVariables();
-// 	recButton.removeClass('rec');
-// 	recButton.html('Record');
-// 	if (mgr.isCurrent(scene01)) {
-// 		recButton.mousePressed(() => {
-// 			startPreroll();
-// 		});
-// 	} else {
-// 		recButton.mousePressed(() => {
-// 			noPreroll();
-// 		});
-// 	}
-// }
-
 function startRecording() {
 	full = false;
 	preroll = false;
 	prerollCounter = 0;
 	rec = true;
-	redoButton.hide()
-	nextButton.hide()
-	recButton.show()
+	redoButton.hide();
+	nextButton.hide();
+	recButton.show();
 	recButton.addClass('rec');
 	recButton.html('Stop');
 	recButton.mousePressed(finishRecording);
-	counterButton.show()
+	counterButton.show();
 }
 
 function updateCounter(remainingFrames) {
 	let secs = floor(remainingFrames / 60);
-	counterButton.html('00:' + secs);
+	counterButton.html('0:' + secs);
 }
 
 function finishRecording() {
-	// TODO localStorage?
 	preroll = false;
 	prerollCounter = 0;
 	rec = false;
@@ -367,7 +303,6 @@ function finishRecording() {
 
 // Used when stopping during the preroll, before there's any recording at all
 function cancelRecording() {
-	// TODO localStorage?
 	preroll = false;
 	prerollCounter = 0;
 	rec = false;
@@ -406,7 +341,7 @@ function fps() {
 	push();
 	textSize(14);
 	fill(200);
-	text(floor(frameRate()), width-20, height - 20);
+	text(floor(frameRate()), width - 38, height - 20);
 	pop();
 }
 
@@ -415,7 +350,6 @@ function getNewVideo(loc) {
 	sample = createVideo(loc, videoReady);
 	sample.volume(0);
 	sample.loop();
-	// sample.size(627, 470);
 	sample.hide();
 }
 
@@ -445,14 +379,19 @@ function dbg(message) {
 
 // remaps points from the sample dimensions to the canvas dimensions
 // applies padding, which also centers and scales the shape
-function remapFromPose(pointArr) {
-	let sampleWidth = sample.width ? sample.width : 640;
-	let sampleHeight = sample.height ? sample.height : 480;
-	let padding = par.padding ? par.padding : 50;
+function remapFromPose(pointArr, padding) {
+	let webcamWidth = sample.width ? sample.width : 640;
+	let webcamHeight = sample.height ? sample.height : 480;
+	let pad;
+	if (padding) {
+		pad = padding;
+	} else {
+		pad = par.padding;
+	}
 	let remapped = pointArr.map(point => {
 		return [
-			remap(point[0], sampleWidth, width, padding),
-			remap(point[1], sampleHeight, height, padding),
+			remap(point[0], webcamWidth, width, pad),
+			remap(point[1], webcamHeight, height, pad),
 		];
 	});
 	return remapped;
@@ -461,4 +400,30 @@ function remapFromPose(pointArr) {
 // remaps a single number
 function remap(point, range, target, padding) {
 	return map(point, 0, range, padding, target - padding);
+}
+
+function rewireUI(sceneIndex) {
+	if (!sceneIndex) {
+		sceneIndex = mgr.findSceneIndex(mgr.scene.fnScene);
+	}
+	// rehook and reset and show record button
+	recButton = select('#record-button-0' + sceneIndex);
+	recButton.html('Record');
+	recButton.removeClass('rec');
+	recButton.mousePressed(() => startRecording());
+	recButton.show();
+	// reset and show counter
+	counterButton = select('#counter-0' + sceneIndex);
+	// update recording time based on recording frames. assumes a recording time
+	// of less than 60 seconds...
+	counterButton.html('0:' + par.recordFrames / 60);
+	counterButton.show();
+	// rehook button for this scene, and hide for now
+	redoButton = select('#redo-0' + sceneIndex);
+	redoButton.mousePressed(() => mgr.showScene(mgr.scene.fnScene));
+	redoButton.hide();
+	// rehook next button for this scene, and hide for now
+	nextButton = select('#next-button-0' + sceneIndex);
+	nextButton.mousePressed(() => mgr.showNextScene());
+	nextButton.hide();
 }

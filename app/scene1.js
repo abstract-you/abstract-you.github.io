@@ -1,12 +1,13 @@
 function scene01() {
 	this.enter = function () {
 		dbg('scene01');
-		frameRate(par.frameRate)
+		frameRate(par.frameRate);
 		// ----- clean-up
 		noseAnchor = '';
-		sample.size(668,500)
+		sample.size(par.webcamWidth, par.webcamHeight);
 		sample.hide();
 		isFaceapiStandby = true;
+		select('body').removeClass('light');
 		// ----- reset state vars
 		history1 = [];
 		full = false;
@@ -17,28 +18,11 @@ function scene01() {
 		resizeCanvas(820, 820);
 		// show preview in secondary canvas
 		monitor.parent('#webcam-monitor-01');
-		monitor.resizeCanvas(500, 500);
+		monitor.resizeCanvas(500, 470);
 		monitor.show();
 		// ----- rewire ui
-		// rehook and reset and show record button
-		recButton = select('#record-button-01');
-		recButton.html('Record');
-		recButton.removeClass('rec');
+		rewireUI();
 		recButton.mousePressed(() => startPreroll());
-		recButton.show();
-		// reset and show counter
-		counterButton = select('#counter-01');
-		// update recording time based on recording frames. assumes a recording time of less than 60 seconds...
-		counterButton.html('00:' + par.recordFrames / 60);
-		counterButton.show();
-		// rehook button for this scene, and hide for now
-		redoButton = select('#redo-01');
-		redoButton.mousePressed(() => mgr.showScene(scene01));
-		redoButton.hide();
-		// rehook next button for this scene, and hide for now
-		nextButton = select('#next-button-01');
-		nextButton.mousePressed(() => mgr.showScene(scene02));
-		nextButton.hide();
 		// ----- scene management
 		chooseScene('#scene-01');
 	};
@@ -52,7 +36,19 @@ function scene01() {
 		if (sample) {
 			monitor.push();
 			mirror(monitor);
-			monitor.image(sample, 180+par.videoSync, 0);
+
+			monitor.image(
+				sample,
+				par.dx,
+				par.dy,
+				par.dwidth,
+				par.dheight,
+				par.sx,
+				par.sy,
+				par.swidth,
+				par.sheight
+			);
+
 			monitor.pop();
 		}
 		// -----live poses
@@ -77,7 +73,13 @@ function scene01() {
 				// -----
 				// -----play live shape
 				// play a live shape when there is no recording
-				if (!full) makeShape1(pose);
+				if (par.s01UseStar) {
+					makeShape2(pose, 'sharper');
+				} else if (par.s01UseBlob) {
+					makeShape2(pose, 'softer');
+				} else if (!full) {
+					makeShape1(pose);
+				}
 			}
 		}
 		// -----
@@ -96,12 +98,12 @@ function scene01() {
 }
 
 // -----shape pipeline: draw basic shape based on pose data
-// Anchors target points and stabilize jerky movements and posenet quirks.
-// Expanded shapes are drawn around anchors to form a body around the
-// skeleton, points based on those shapes are added to the array. Convex hull
-// is calculated from all points to determine outline path (Roundness is the
-// concavity paramater, how tightly the hull wraps around the points.)
-// TRY. Create additional expansion points around torso and between limb points
+// (1) Anchors target points and stabilize jerky movements and posenet quirks.
+// (2) Expanded shapes are drawn around anchors to form a body around the
+// skeleton, points based on those shapes are added to the array. (3) Convex
+// hull is calculated from all points to determine outline path (Roundness is
+// the concavity paramater, how tightly the hull wraps around the points.) (4)
+// Padding is addded to keep the shape centered
 function makeShape1(pose) {
 	Anchor.chasePose(pose);
 	let expanded = [];
@@ -176,31 +178,47 @@ function recordShape1(data) {
 // or build it manually based on the points that are alawys available. Plus some basic
 // paramaters like minimum/maximum bone length (relative to some general proportion?)
 function previewSkeleton() {
-	let skeleton = poses[0].skeleton
+	let skeleton = poses[0].skeleton;
 	// For every skeleton, loop through all body connections
 	for (let i = 0; i < skeleton.length; i++) {
 		let partA = skeleton[i][0];
 		let partB = skeleton[i][1];
 		monitor.push();
-		mirror(monitor)
+		mirror(monitor);
 		// realign with mirrored video
-		monitor.translate(200,0);
+		monitor.translate(200, 0);
 		monitor.stroke('#AFEEEE');
+		monitor.noFill();
 		monitor.line(
 			partA.position.x,
 			partA.position.y,
 			partB.position.x,
 			partB.position.y
 		);
+		monitor.stroke(255);
+		monitor.fill(255);
 		monitor.ellipse(partA.position.x, partA.position.y, 5);
 		monitor.ellipse(partB.position.x, partB.position.y, 5);
 		monitor.pop();
 	}
 }
 
+function startPreroll() {
+	preroll = true;
+	full = false;
+	recButton.addClass('rec');
+	recButton.html('Stop');
+	recButton.mousePressed(cancelRecording);
+}
+
+function noPreroll() {
+	startRecording();
+}
+
 // shows a 3...2..1... animation on the second canvas
 // crude animation timing based on modulo of the frameCounter, but seems to work well enough
 function playPreroll() {
+	console.log('playPreroll');
 	let counter = floor(map(prerollCounter, 0, par.preRecCounterFrames, 3.9, 0));
 	if (counter > 0) {
 		monitor.push();

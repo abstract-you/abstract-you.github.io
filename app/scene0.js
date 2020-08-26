@@ -1,10 +1,11 @@
 function scene00() {
 	this.enter = function () {
 		dbg('scene00');
-		frameRate(par.frameRate)
+		frameRate(par.frameRate);
 		// -----clean-up
-		sample.size(668,500)
+		sample.size(par.webcamWidth, par.webcamHeight);
 		sample.hide();
+		select('body').removeClass('light');
 		// -----page layout
 		sketchCanvas.parent('#canvas-00');
 		resizeCanvas(350, 350);
@@ -18,14 +19,24 @@ function scene00() {
 
 	// --0draw
 	this.draw = function () {
-		frameRate(par.frameRate)
+		frameRate(par.frameRate);
 		background(255);
 		if (isWebcamReady && isFaceApiReady && isPosenetReady) {
 			// render video on the monitor canvas, centered and flipped
 			if (sample) {
 				monitor.push();
 				mirror(monitor);
-				monitor.image(sample, -120,0)
+				monitor.image(
+					sample,
+					0,
+					0,
+					350,
+					350,
+					par.sx,
+					par.sy,
+					par.swidth,
+					par.sheight
+				);
 				monitor.pop();
 			}
 			if (poses[0]) {
@@ -41,10 +52,10 @@ function scene00() {
 				let ny = noseAnchor.position.y;
 				let pad = par.padding / 2;
 
-				let sampleWidth = sample.width ? sample.width : 640;
-				let sampleHeight = sample.height ? sample.height : 480;
-				let cx = remap(nx, sampleWidth, width, pad);
-				let cy = remap(ny, sampleHeight, height, pad);
+				let webcamWidth = sample.width ? sample.width : 640;
+				let webcamHeight = sample.height ? sample.height : 480;
+				let cx = remap(nx, webcamWidth, width, pad);
+				let cy = remap(ny, webcamHeight, height, pad);
 
 				push();
 				mirror();
@@ -69,7 +80,7 @@ function scene00() {
 			}
 		} else {
 			// loading animation while we wait
-			background('#101010');
+			background(colors.dark);
 			let r = cos(frameCount) * 50;
 			let l = sin(frameCount) * 50;
 			fill('#393939');
@@ -77,14 +88,14 @@ function scene00() {
 			fill('#595959');
 			textAlign(CENTER, CENTER);
 			// text('Loading', width / 2, height -34);
-			monitor.background('#101010');
+			monitor.background(colors.dark);
 			monitor.fill('#393939');
 			monitor.ellipse(width / 2, height / 2, l);
 			monitor.fill('#595959');
 			monitor.textAlign(CENTER, CENTER);
 			// monitor.text('Loading', width / 2, height - 34);
 		}
-		if (par.frameRate|| par.debug) {
+		if (par.showFrameRate || par.debug) {
 			// mirror();
 			fps();
 			// mirror(); // Yeah, perfectly reasonable solution...
