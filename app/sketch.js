@@ -381,19 +381,19 @@ function dbg(message) {
 
 // remaps points from the sample dimensions to the canvas dimensions
 // applies padding, which also centers and scales the shape
-function remapFromPose(pointArr, padding) {
+function remapFromPose(pointArr, padding = par.padding) {
+	// console.log('remapFromPose');
+	// console.log(padding);
+	// console.log(pointArr);
+	// If there's no pose, we just return an empty array to draw nothing. This
+	// seems like the simplest way to integrate the confidence score
+	if (!pointArr[0]) return [];
 	let webcamWidth = sample.width ? sample.width : 640;
 	let webcamHeight = sample.height ? sample.height : 480;
-	let pad;
-	if (padding) {
-		pad = padding;
-	} else {
-		pad = par.padding;
-	}
 	let remapped = pointArr.map(point => {
 		return [
-			remap(point[0], webcamWidth, width, pad),
-			remap(point[1], webcamHeight, height, pad),
+			remap(point[0], webcamWidth, width, padding),
+			remap(point[1], webcamHeight, height, padding),
 		];
 	});
 	return remapped;

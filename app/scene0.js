@@ -81,21 +81,23 @@ function scene00() {
 				pop();
 			}
 		} else {
+			// FIXME: replace with Material Design spinner medium
+			// FIXME: try loading with canvas already white
 			// loading animation while we wait
 			background(colors.dark);
 			let r = cos(frameCount) * 50;
 			let l = sin(frameCount) * 50;
 			fill('#393939');
-			ellipse(width / 2, height / 2, r);
+			// ellipse(width / 2, height / 2, r);
 			fill('#595959');
 			textAlign(CENTER, CENTER);
-			// text('Loading', width / 2, height -34);
+			text('Loading', width / 2, height - 34);
 			monitor.background(colors.dark);
-			monitor.fill('#393939');
-			monitor.ellipse(width / 2, height / 2, l);
+			// monitor.fill('#393939');
+			// monitor.ellipse(width / 2, height / 2, l);
 			monitor.fill('#595959');
 			monitor.textAlign(CENTER, CENTER);
-			// monitor.text('Loading', width / 2, height - 34);
+			monitor.text('Loading', width / 2, height - 34);
 		}
 		if (par.showFrameRate || par.debug) {
 			// mirror();

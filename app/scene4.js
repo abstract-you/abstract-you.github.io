@@ -27,7 +27,7 @@ function scene04() {
 		// check results of previous steps
 		history2
 			? (finalShapeType = analyzeExpressionHistory(history2))
-			: (finalShapeType = 'softer');
+			: (finalShapeType = 'bouba');
 		history3
 			? (finalScale = analyzeVoiceHistory(history3))
 			: (finalScale = 0.2);
@@ -116,11 +116,11 @@ function renderGifShape(shape, shapeType) {
 	gifc.strokeWeight(par.shapeStrokeWeight / 2);
 	gifc.noFill();
 	gifc.beginShape();
-	if (shapeType === 'softer') {
+	if (shapeType === 'bouba') {
 		shape.forEach(p => {
 			gifc.curveVertex(p[0] / 2, p[1] / 2);
 		});
-	} else if (shapeType === 'sharper') {
+	} else if (shapeType === 'kiki') {
 		shape.forEach(p => {
 			gifc.vertex(p[0] / 2, p[1] / 2);
 		});

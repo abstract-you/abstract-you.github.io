@@ -77,13 +77,13 @@ function scene02() {
 			monitor.pop();
 		}
 
-		let currentShapeType = 'softer';
+		let currentShapeType = 'bouba';
 		// -----faceapi ready loaded and working
 		if (isFaceapiLoaded) {
 			// -----live expressions
 			if (detections[0]) {
-				if (par.lockStar) {
-					currentShapeType = 'sharper';
+				if (par.alwaysKiki) {
+					currentShapeType = 'kiki';
 				} else {
 					currentShapeType = getShapeType();
 				}
@@ -129,27 +129,25 @@ function scene02() {
 // around anchors based on the shape type (4) Convex hull is calculated from all
 // points to determine outline path. Roundness is set based on shape type (5)
 // Padding is addded to keep the shape centered
-// TRY. Create additional expansion points around torso and be tween limb points.
-// Especially for the star shape
+// TRY. Create additional expansion points around torso and between limb points.
+// Especially for the star shape (to keep the convex hull from collapsing)
 
 function makeShape2(pose, shapeType) {
-	// console.log('makeShape2');
-	// console.log('pose');
-	// console.log(pose);
-	// console.log('shapeType');
-	// console.log(shapeType);
 	// set up anchors
 	Anchor.chasePose(pose);
 	// expand and get hull based on live shape type
 	let expanded = [];
 	let hullSet = [];
-	if (shapeType === 'softer') {
-		expanded = expandBlob();
-		hullSet = hull(expanded, par.roundnessSofter);
-	} else if (shapeType === 'sharper') {
-		expanded = expandStar();
-		// console.log(expanded)
-		hullSet = hull(expanded, par.roundnessSharper);
+	if (shapeType === 'bouba') {
+		expanded = boubaFromAnchors();
+		hullSet = hull(expanded, par.roundnessBouba);
+	} else if (shapeType === 'kiki') {
+		expanded = kikiFromAnchors();
+		hullSet = hull(expanded, par.roundnessKiki);
+	} else if (shapeType === 'neutral') {
+		expanded = neutralFromAnchors();
+		hullSet = hull(expanded, par.roundnessNeutral);
+		// should look the same as step 1
 	} else {
 		console.error('bad shape type from makeShape2');
 	}
@@ -178,11 +176,15 @@ function renderShape2(shape, shapeType) {
 	strokeWeight(par.shapeStrokeWeight);
 	noFill();
 	beginShape();
-	if (shapeType === 'softer') {
+	if (shapeType === 'bouba') {
 		shape.forEach(p => {
 			curveVertex(p[0], p[1]);
 		});
-	} else if (shapeType === 'sharper') {
+	} else if (shapeType === 'kiki') {
+		shape.forEach(p => {
+			vertex(p[0], p[1]);
+		});
+	} else if (shapeType === 'neutral') {
 		shape.forEach(p => {
 			vertex(p[0], p[1]);
 		});
@@ -229,8 +231,13 @@ function previewExpression(faces) {
 	let box = faces[0].detection.box;
 	monitor.stroke('blue');
 	monitor.noFill();
-	// manually mirrorring back so we don't mess up the text
-	monitor.rect(monitor.width - box.x, box.y, box.width, box.height);
+	// mirroring x manually this time so we don't mess with the text
+	monitor.rect(
+		monitor.width - box.x - box.width / 2,
+		box.y,
+		box.width,
+		box.height
+	);
 	monitor.noStroke();
 	monitor.fill('red');
 	monitor.push();
@@ -238,7 +245,7 @@ function previewExpression(faces) {
 	// monitor.scale(-1, 1);
 	monitor.text(
 		current + ' (' + round(score, 2) + ')',
-		monitor.width - box.bottomLeft.x,
+		monitor.width - box.x - box.width / 2,
 		box.bottomLeft.y + 20
 	);
 	monitor.pop();
@@ -258,26 +265,26 @@ function recordExpression(data) {
 	if (history2.length >= par.recordFrames) finishRecording();
 }
 
-// Runs on expressionAggregate which is an array of shape types (softer/sharper)
+// Runs on expressionAggregate which is an array of shape types (neutral/bouba/kiki)
 function analyzeExpressionHistory(exps) {
-	let softer = 0;
-	let sharper = 0;
+	let bouba = 0;
+	let kiki = 0;
 	if (exps[0]) {
 		exps.forEach(ex => {
 			switch (ex) {
-				case 'softer':
-					softer++;
+				case 'bouba':
+					bouba++;
 					break;
-				case 'sharper':
-					sharper++;
+				case 'kiki':
+					kiki++;
 					break;
 			}
 		});
 	}
-	if (softer > sharper) {
-		return 'softer';
+	if (kiki > bouba) {
+		return 'kiki';
 	} else {
-		return 'sharper';
+		return 'bouba';
 	}
 }
 
@@ -300,72 +307,73 @@ function getShapeType() {
 			switch (expression) {
 				case 'happy':
 				case 'surprised':
+					type = 'bouba';
+					break;
 				case 'neutral':
-					type = 'softer';
+					type = 'neutral';
 					break;
 				default:
-					type = 'sharper';
+					type = 'kiki';
 					break;
 			}
 		}
 	} else {
-		type = 'softer';
+		// FIXME check the transition between step 1 and 2
+		type = 'bouba';
 	}
 	return type;
 }
 
 // ----- utitlity functions to handle all the different body parts without cluttering up the main code
 
-// calls starify() with different paramaters for each body part
-function expandStar() {
+// calls kikiExpand() with different paramaters for each body part
+function kikiFromAnchors() {
 	let newArr = [];
-	newArr = newArr.concat(anchors.nose.starify(par.star0Nose));
-	newArr = newArr.concat(anchors.leftEar.starify(par.star1LeftEye));
-	newArr = newArr.concat(anchors.rightEar.starify(par.star2RightEye));
-	newArr = newArr.concat(anchors.rightEar.starify(par.star3LeftEar));
-	newArr = newArr.concat(anchors.rightEar.starify(par.star4RightEar));
-	newArr = newArr.concat(anchors.leftShoulder.starify(par.star5LeftShoulder));
-	newArr = newArr.concat(anchors.rightShoulder.starify(par.star6RightShoulder));
-	newArr = newArr.concat(anchors.leftElbow.starify(par.star7LeftElbow));
-	newArr = newArr.concat(anchors.rightElbow.starify(par.star8RightElbow));
-	newArr = newArr.concat(anchors.leftWrist.starify(par.star9LeftWrist));
-	newArr = newArr.concat(anchors.rightWrist.starify(par.star10RightWrist));
-	newArr = newArr.concat(anchors.leftHip.starify(par.star11LeftHip));
-	newArr = newArr.concat(anchors.rightHip.starify(par.star12RightHip));
-	newArr = newArr.concat(anchors.leftKnee.starify(par.star13LeftKnee));
-	newArr = newArr.concat(anchors.rightKnee.starify(par.star14RightKnee));
-	newArr = newArr.concat(anchors.leftAnkle.starify(par.star15LeftAnkle));
-	newArr = newArr.concat(anchors.rightAnkle.starify(par.star16RightAnkle));
-	// console.log('expandStar')
-	// console.log(newArr)
+	newArr = newArr.concat(anchors.nose.kikiExpand(par.kiki0));
+	newArr = newArr.concat(anchors.leftEar.kikiExpand(par.kiki1));
+	newArr = newArr.concat(anchors.rightEar.kikiExpand(par.kiki2));
+	newArr = newArr.concat(anchors.rightEar.kikiExpand(par.kiki3));
+	newArr = newArr.concat(anchors.rightEar.kikiExpand(par.kiki4));
+	newArr = newArr.concat(anchors.leftShoulder.kikiExpand(par.kiki5));
+	newArr = newArr.concat(anchors.rightShoulder.kikiExpand(par.kiki6));
+	newArr = newArr.concat(anchors.leftElbow.kikiExpand(par.kiki7));
+	newArr = newArr.concat(anchors.rightElbow.kikiExpand(par.kiki8));
+	newArr = newArr.concat(anchors.leftWrist.kikiExpand(par.kiki9));
+	newArr = newArr.concat(anchors.rightWrist.kikiExpand(par.kiki10));
+	newArr = newArr.concat(anchors.leftHip.kikiExpand(par.kiki11));
+	newArr = newArr.concat(anchors.rightHip.kikiExpand(par.kiki12));
+	newArr = newArr.concat(anchors.leftKnee.kikiExpand(par.kiki13));
+	newArr = newArr.concat(anchors.rightKnee.kikiExpand(par.kiki14));
+	newArr = newArr.concat(anchors.leftAnkle.kikiExpand(par.kiki15));
+	newArr = newArr.concat(anchors.rightAnkle.kikiExpand(par.kiki16));
 	return newArr;
 }
 
-// calls blobify() with different paramaters for each body part
-function expandBlob() {
+// calls boubaExpand() with different paramaters for each body part
+function boubaFromAnchors() {
 	let newArr = [];
-	// blobify()
+	// boubaExpand()
 
 	// FIXME: This is a bug
-	newArr = newArr.concat(anchors.rightAnkle.starify(0));
+	// newArr = newArr.concat(anchors.rightAnkle.kikiExpand(0));
 
-	newArr = newArr.concat(anchors.nose.blobify(par.blob0Nose, par.blob0NoseInc));
-	newArr = newArr.concat(anchors.leftEar.blobify(par.blob1LeftEye));
-	newArr = newArr.concat(anchors.rightEar.blobify(par.blob2RightEye));
-	newArr = newArr.concat(anchors.rightEar.blobify(par.blob3LeftEar));
-	newArr = newArr.concat(anchors.rightEar.blobify(par.blob4RightEar));
-	newArr = newArr.concat(anchors.leftShoulder.blobify(par.blob5LeftShoulder));
-	newArr = newArr.concat(anchors.rightShoulder.blobify(par.blob6RightShoulder));
-	newArr = newArr.concat(anchors.leftElbow.blobify(par.blob7LeftElbow));
-	newArr = newArr.concat(anchors.rightElbow.blobify(par.blob8RightElbow));
-	newArr = newArr.concat(anchors.leftWrist.blobify(par.blob9LeftWrist));
-	newArr = newArr.concat(anchors.rightWrist.blobify(par.blob10RightWrist));
-	newArr = newArr.concat(anchors.leftHip.blobify(par.blob11LeftHip));
-	newArr = newArr.concat(anchors.rightHip.blobify(par.blob12RightHip));
-	newArr = newArr.concat(anchors.leftKnee.blobify(par.blob13LeftKnee));
-	newArr = newArr.concat(anchors.rightKnee.blobify(par.blob14RightKnee));
-	newArr = newArr.concat(anchors.leftAnkle.blobify(par.blob15LeftAnkle));
-	newArr = newArr.concat(anchors.rightAnkle.blobify(par.blob16RightAnkle));
+	newArr = newArr.concat(anchors.nose.boubaExpand(par.bouba0, par.bouba0Steps));
+	newArr = newArr.concat(anchors.leftEar.boubaExpand(par.bouba1));
+	newArr = newArr.concat(anchors.rightEar.boubaExpand(par.bouba2));
+	newArr = newArr.concat(anchors.rightEar.boubaExpand(par.bouba3));
+	newArr = newArr.concat(anchors.rightEar.boubaExpand(par.bouba4));
+	newArr = newArr.concat(anchors.leftShoulder.boubaExpand(par.bouba5));
+	newArr = newArr.concat(anchors.rightShoulder.boubaExpand(par.bouba6));
+	newArr = newArr.concat(anchors.leftElbow.boubaExpand(par.bouba7));
+	newArr = newArr.concat(anchors.rightElbow.boubaExpand(par.bouba8));
+	newArr = newArr.concat(anchors.leftWrist.boubaExpand(par.bouba9));
+	newArr = newArr.concat(anchors.rightWrist.boubaExpand(par.bouba10));
+	newArr = newArr.concat(anchors.leftHip.boubaExpand(par.bouba11));
+	newArr = newArr.concat(anchors.rightHip.boubaExpand(par.bouba12));
+	newArr = newArr.concat(anchors.leftKnee.boubaExpand(par.bouba13));
+	newArr = newArr.concat(anchors.rightKnee.boubaExpand(par.bouba14));
+	newArr = newArr.concat(anchors.leftAnkle.boubaExpand(par.bouba15));
+	newArr = newArr.concat(anchors.rightAnkle.boubaExpand(par.bouba16));
 	// console.log('expandBlob')
 	// console.log(newArr)
 	return newArr;

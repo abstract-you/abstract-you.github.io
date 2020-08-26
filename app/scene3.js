@@ -39,7 +39,7 @@ function scene03() {
 		if (history2) {
 			finalShapeType = analyzeExpressionHistory(history2);
 		} else {
-			finalShapeType = 'softer';
+			finalShapeType = 'bouba';
 		}
 
 		// -----page
@@ -99,13 +99,13 @@ function makeShape3(pose, shapeType, micLevel, gif = false) {
 	// expand and get hull based on live shape type
 	let expanded = [];
 	let hullSet = [];
-	if (shapeType === 'softer') {
-		expanded = expandBlob();
-		hullSet = hull(expanded, par.roundnessSofter);
-	} else if (shapeType === 'sharper') {
-		expanded = expandStar();
+	if (shapeType === 'bouba') {
+		expanded = boubaFromAnchors();
+		hullSet = hull(expanded, par.roundnessBouba);
+	} else if (shapeType === 'kiki') {
+		expanded = kikiFromAnchors();
 		// console.log(expanded)
-		hullSet = hull(expanded, par.roundnessSharper);
+		hullSet = hull(expanded, par.roundnessKiki);
 	} else {
 		console.error('bad shape type from drawLiveShape3');
 	}

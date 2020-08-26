@@ -1,7 +1,7 @@
 class Paramaterize {
 	constructor() {
 		this.scene = '0';
-		this.debug = false;
+		this.debug = true;
 		// this.demoMode = true;
 
 		// 500x470
@@ -46,6 +46,7 @@ class Paramaterize {
 		this.noseYOffset = 155;
 		this.topSpeed = 20;
 		this.maxAcc = 10;
+		this.minScore = 0.5;
 
 		// -----reference shapes
 		this.hideShape = false;
@@ -59,74 +60,92 @@ class Paramaterize {
 		this.showFrameRate = false;
 
 		// -----01 ellipse
-		this.s01UseBlob = false;
-		this.s01UseStar = false;
+		this.boubaStep1 = false;
+		this.kikiStep1 = false;
 		this.ellipseOffsetIncrement = 0.01;
 		this.ellipseMinRadius = 50;
 		this.ellipseMaxRadius = 50;
 		this.ellipseIncrement = 40;
-		this.step1Roundness = 200;
+		this.roundnessNeutral = 200;
 
 		// -----02
 		this.showExpressionGraph = false;
-		this.lockStar = false;
+		this.alwaysKiki = false;
 
-		// -----02 softer
-		this.blobModifier = 1;
-		this.roundnessSofter = 200;
-		this.blobAngleInc = 20;
-		this.blobMinRadius = 50;
-		this.blobMaxRadius = 90;
-		this.blobMaxXNoise = 2;
-		this.blobMaxYNoise = 2;
-		this.blobPhaseShift = 0.001;
-		this.blobZOff = 0.01;
-		this.blob0Nose = 2;
-		this.blob0NoseInc = 8;
-		this.blob1LeftEye = 0;
-		this.blob2RightEye = 0;
-		this.blob3LeftEar = 1.5;
-		this.blob4RightEar = 1.5;
-		this.blob5LeftShoulder = 1.5;
-		this.blob6RightShoulder = 1.5;
-		this.blob7LeftElbow = 1.5;
-		this.blob8RightElbow = 1.5;
-		this.blob9LeftWrist = 1.5;
-		this.blob10RightWrist = 1.5;
-		this.blob11LeftHip = 1.5;
-		this.blob12RightHip = 1.5;
-		this.blob13LeftKnee = 1.5;
-		this.blob14RightKnee = 1.5;
-		this.blob15LeftAnkle = 1.5;
-		this.blob16RightAnkle = 1.5;
+		this.neutral0 = 2;
+		this.neutral1 = 0;
+		this.neutral2 = 0;
+		this.neutral3 = 1.5;
+		this.neutral4 = 1.5;
+		this.neutral5 = 1.5;
+		this.neutral6 = 1.5;
+		this.neutral7 = 1.5;
+		this.neutral8 = 1.5;
+		this.neutral9 = 1.5;
+		this.neutral10 = 1.5;
+		this.neutral11 = 1.5;
+		this.neutral12 = 1.5;
+		this.neutral13 = 1.5;
+		this.neutral14 = 1.5;
+		this.neutral15 = 1.5;
+		this.neutral16 = 1.5;
 
-		// -----02 sharper
-		this.roundnessSharper = 78;
+		// -----bouba
+		this.modifierBouba = 1;
+		this.roundnessBouba = 150;
+		this.angleIncBouba = 20;
+		this.minRadiusBouba = 70;
+		this.maxRadiusBouba = 90;
+		this.maxXNoiseBouba = 2;
+		this.maxYNoiseBouba = 2;
+		this.phaseShiftBouba = 0.01;
+		this.zOffBouba = 0.05;
+		this.bouba0 = 2;
+		this.bouba0steps = 8;
+		this.bouba1 = 0;
+		this.bouba2 = 0;
+		this.bouba3 = 1.5;
+		this.bouba4 = 1.5;
+		this.bouba5 = 1.5;
+		this.bouba6 = 1.5;
+		this.bouba7 = 1.5;
+		this.bouba8 = 1.5;
+		this.bouba9 = 1.5;
+		this.bouba10 = 1.5;
+		this.bouba11 = 1.5;
+		this.bouba12 = 1.5;
+		this.bouba13 = 1.5;
+		this.bouba14 = 1.5;
+		this.bouba15 = 1.5;
+		this.bouba16 = 1.5;
+
+		// -----kiki
+		this.modifierKiki = 1;
+		this.roundnessKiki = 78;
 		this.starPoints = 7;
 		this.starInternalRadius = 35;
 		this.starExternalRadius = 90;
-		this.starNoiseRange = 50;
-		this.starXNoiseStep = 0.001;
-		this.starYNoiseStep = 0.001;
-		this.starPhaseShift = 0.001;
-		this.starModifier = 1;
-		this.star0Nose = 2;
-		this.star1LeftEye = 1;
-		this.star2RightEye = 1;
-		this.star3LeftEar = 1;
-		this.star4RightEar = 1;
-		this.star5LeftShoulder = 1;
-		this.star6RightShoulder = 1;
-		this.star7LeftElbow = 1;
-		this.star8RightElbow = 1;
-		this.star9LeftWrist = 1;
-		this.star10RightWrist = 1;
-		this.star11LeftHip = 1;
-		this.star12RightHip = 1;
-		this.star13LeftKnee = 1;
-		this.star14RightKnee = 1;
-		this.star15LeftAnkle = 1;
-		this.star16RightAnkle = 1;
+		this.noiseRangeKiki = 50;
+		this.xNoiseStepKiki = 0.001;
+		this.yNoiseStepKiki = 0.001;
+		this.phaseShiftKiki = 0.001;
+		this.kiki0 = 2;
+		this.kiki1 = 1;
+		this.kiki2 = 1;
+		this.kiki3 = 1;
+		this.kiki4 = 1;
+		this.kiki5 = 1;
+		this.kiki6 = 1;
+		this.kiki7 = 1;
+		this.kiki8 = 1;
+		this.kiki9 = 1;
+		this.kiki10 = 1;
+		this.kiki11 = 1;
+		this.kiki12 = 1;
+		this.kiki13 = 1;
+		this.kiki14 = 1;
+		this.kiki15 = 1;
+		this.kiki16 = 1;
 
 		// -----scene03
 		this.voiceScaleModifier = 1;
@@ -134,6 +153,24 @@ class Paramaterize {
 		this.voiceMinPadding = 220;
 		this.phaseMaxOffset = 0.01;
 		this.phaseMax = 0.0001;
+
+		this.nose0 = function () {};
+		this.leftEye1 = function () {};
+		this.rightEye2 = function () {};
+		this.leftEar3 = function () {};
+		this.rightEar4 = function () {};
+		this.leftShoulder5 = function () {};
+		this.rightShoulder6 = function () {};
+		this.leftElbow7 = function () {};
+		this.rightElbow8 = function () {};
+		this.leftWrist9 = function () {};
+		this.rightWrist10 = function () {};
+		this.leftHip11 = function () {};
+		this.rightHip12 = function () {};
+		this.leftKnee13 = function () {};
+		this.rightKnee14 = function () {};
+		this.leftAnkle15 = function () {};
+		this.rightAnkle16 = function () {};
 	}
 }
 
@@ -141,7 +178,6 @@ let par = new Paramaterize();
 let gui = new dat.GUI({
 	autoPlace: true,
 	width: 350,
-	// load: getPresetJSON(),
 	preset: 'Preset1',
 });
 gui.remember(par);
@@ -165,6 +201,7 @@ f00.add(par, 'gifFrames');
 f00.add(par, 'noseYOffset');
 f00.add(par, 'topSpeed');
 f00.add(par, 'maxAcc');
+f00.add(par, 'minScore');
 
 // -----reference
 let fr = gui.addFolder('Reference');
@@ -175,12 +212,94 @@ fr.add(par, 'showAnchors');
 // fr.add(par, 'showPose');
 // fr.add(par, 'showHull');
 
+// -----neutral
+
+let f011 = gui.addFolder('neutral/step1');
+f011.add(par, 'neutral0');
+f011.add(par, 'neutral1');
+f011.add(par, 'neutral2');
+f011.add(par, 'neutral3');
+f011.add(par, 'neutral4');
+f011.add(par, 'neutral5');
+f011.add(par, 'neutral6');
+f011.add(par, 'neutral7');
+f011.add(par, 'neutral8');
+f011.add(par, 'neutral9');
+f011.add(par, 'neutral10');
+f011.add(par, 'neutral11');
+f011.add(par, 'neutral12');
+f011.add(par, 'neutral13');
+f011.add(par, 'neutral14');
+f011.add(par, 'neutral15');
+f011.add(par, 'neutral16');
+
+// -----bouba
+let f022 = gui.addFolder('bouba');
+f022.add(par, 'modifierBouba');
+f022.add(par, 'roundnessBouba');
+f022.add(par, 'angleIncBouba', 2);
+f022.add(par, 'minRadiusBouba');
+f022.add(par, 'maxRadiusBouba');
+f022.add(par, 'maxXNoiseBouba');
+f022.add(par, 'maxYNoiseBouba');
+f022.add(par, 'phaseShiftBouba');
+f022.add(par, 'zOffBouba');
+f022.add(par, 'bouba0');
+f022.add(par, 'bouba0steps');
+f022.add(par, 'bouba1');
+f022.add(par, 'bouba2');
+f022.add(par, 'bouba3');
+f022.add(par, 'bouba4');
+f022.add(par, 'bouba5');
+f022.add(par, 'bouba6');
+f022.add(par, 'bouba7');
+f022.add(par, 'bouba8');
+f022.add(par, 'bouba9');
+f022.add(par, 'bouba10');
+f022.add(par, 'bouba11');
+f022.add(par, 'bouba12');
+f022.add(par, 'bouba13');
+f022.add(par, 'bouba14');
+f022.add(par, 'bouba15');
+f022.add(par, 'bouba16');
+// f022.open()
+
+// -----kiki
+let f023 = gui.addFolder('kiki');
+f023.add(par, 'alwaysKiki');
+f023.add(par, 'modifierKiki');
+f023.add(par, 'roundnessKiki');
+f023.add(par, 'starPoints');
+f023.add(par, 'starInternalRadius');
+f023.add(par, 'starExternalRadius');
+f023.add(par, 'xNoiseStepKiki');
+f023.add(par, 'yNoiseStepKiki');
+f023.add(par, 'phaseShiftKiki');
+f023.add(par, 'kiki0');
+f023.add(par, 'kiki1');
+f023.add(par, 'kiki2');
+f023.add(par, 'kiki3');
+f023.add(par, 'kiki4');
+f023.add(par, 'kiki5');
+f023.add(par, 'kiki6');
+f023.add(par, 'kiki7');
+f023.add(par, 'kiki8');
+f023.add(par, 'kiki9');
+f023.add(par, 'kiki10');
+f023.add(par, 'kiki11');
+f023.add(par, 'kiki12');
+f023.add(par, 'kiki13');
+f023.add(par, 'kiki14');
+f023.add(par, 'kiki15');
+f023.add(par, 'kiki16');
+// f023.open()
+
 // -----01scene
 let f01 = gui.addFolder('Step 01');
 
-f01.add(par, 's01UseBlob');
-f01.add(par, 's01UseStar');
-f01.add(par, 'step1Roundness');
+f01.add(par, 'boubaStep1');
+f01.add(par, 'kikiStep1');
+f01.add(par, 'roundnessNeutral');
 f01.add(par, 'ellipseIncrement', 2);
 f01.add(par, 'ellipseMinRadius');
 f01.add(par, 'ellipseMaxRadius');
@@ -189,67 +308,6 @@ f01.add(par, 'ellipseOffsetIncrement');
 // -----02scene
 let f021 = gui.addFolder('Step 02');
 f021.add(par, 'showExpressionGraph');
-
-// -----02softer
-let f022 = gui.addFolder('Step 02 - Softer shape');
-f022.add(par, 'blobModifier');
-f022.add(par, 'roundnessSofter');
-f022.add(par, 'blobAngleInc', 2);
-f022.add(par, 'blobMinRadius');
-f022.add(par, 'blobMaxRadius');
-f022.add(par, 'blobMaxXNoise');
-f022.add(par, 'blobMaxYNoise');
-f022.add(par, 'blobPhaseShift');
-f022.add(par, 'blobZOff');
-f022.add(par, 'blob0Nose');
-f022.add(par, 'blob0NoseInc');
-f022.add(par, 'blob1LeftEye');
-f022.add(par, 'blob2RightEye');
-f022.add(par, 'blob3LeftEar');
-f022.add(par, 'blob4RightEar');
-f022.add(par, 'blob5LeftShoulder');
-f022.add(par, 'blob6RightShoulder');
-f022.add(par, 'blob7LeftElbow');
-f022.add(par, 'blob8RightElbow');
-f022.add(par, 'blob9LeftWrist');
-f022.add(par, 'blob10RightWrist');
-f022.add(par, 'blob11LeftHip');
-f022.add(par, 'blob12RightHip');
-f022.add(par, 'blob13LeftKnee');
-f022.add(par, 'blob14RightKnee');
-f022.add(par, 'blob15LeftAnkle');
-f022.add(par, 'blob16RightAnkle');
-// f022.open()
-
-// -----02sharper
-let f023 = gui.addFolder('Step 02 - Sharper shape');
-f023.add(par, 'lockStar');
-f023.add(par, 'starModifier');
-f023.add(par, 'roundnessSharper');
-f023.add(par, 'starPoints');
-f023.add(par, 'starInternalRadius');
-f023.add(par, 'starExternalRadius');
-f023.add(par, 'starXNoiseStep');
-f023.add(par, 'starYNoiseStep');
-f023.add(par, 'starPhaseShift');
-f023.add(par, 'star0Nose');
-f023.add(par, 'star1LeftEye');
-f023.add(par, 'star2RightEye');
-f023.add(par, 'star3LeftEar');
-f023.add(par, 'star4RightEar');
-f023.add(par, 'star5LeftShoulder');
-f023.add(par, 'star6RightShoulder');
-f023.add(par, 'star7LeftElbow');
-f023.add(par, 'star8RightElbow');
-f023.add(par, 'star9LeftWrist');
-f023.add(par, 'star10RightWrist');
-f023.add(par, 'star11LeftHip');
-f023.add(par, 'star12RightHip');
-f023.add(par, 'star13LeftKnee');
-f023.add(par, 'star14RightKnee');
-f023.add(par, 'star15LeftAnkle');
-f023.add(par, 'star16RightAnkle');
-// f023.open()
 
 // -----03
 let f003 = gui.addFolder('Step 03');
@@ -269,6 +327,26 @@ fvs.add(par, 'swidth');
 fvs.add(par, 'sheight');
 fvs.add(par, 'webcamWidth');
 fvs.add(par, 'webcamHeight');
+
+// -----part index
+let partIndex = gui.addFolder('Part Index');
+partIndex.add(par, 'nose0');
+partIndex.add(par, 'leftEye1');
+partIndex.add(par, 'rightEye2');
+partIndex.add(par, 'leftEar3');
+partIndex.add(par, 'rightEar4');
+partIndex.add(par, 'leftShoulder5');
+partIndex.add(par, 'rightShoulder6');
+partIndex.add(par, 'leftElbow7');
+partIndex.add(par, 'rightElbow8');
+partIndex.add(par, 'leftWrist9');
+partIndex.add(par, 'rightWrist10');
+partIndex.add(par, 'leftHip11');
+partIndex.add(par, 'rightHip12');
+partIndex.add(par, 'leftKnee13');
+partIndex.add(par, 'rightKnee14');
+partIndex.add(par, 'leftAnkle15');
+partIndex.add(par, 'rightAnkle16');
 
 if (par.debug) {
 	gui.close();

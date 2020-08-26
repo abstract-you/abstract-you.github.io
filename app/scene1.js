@@ -74,9 +74,9 @@ function scene01() {
 				// -----play live shape
 				// play a live shape when there is no recording
 				if (par.s01UseStar) {
-					makeShape2(pose, 'sharper');
+					makeShape2(pose, 'kiki');
 				} else if (par.s01UseBlob) {
-					makeShape2(pose, 'softer');
+					makeShape2(pose, 'bouba');
 				} else if (!full) {
 					makeShape1(pose);
 				}
@@ -106,23 +106,8 @@ function scene01() {
 // Padding is addded to keep the shape centered
 function makeShape1(pose) {
 	Anchor.chasePose(pose);
-	let expanded = [];
-	expanded = expanded.concat(anchors.nose.ellipsify(3));
-	expanded = expanded.concat(anchors.leftEar.ellipsify());
-	expanded = expanded.concat(anchors.rightEar.ellipsify());
-	expanded = expanded.concat(anchors.leftShoulder.ellipsify(2));
-	expanded = expanded.concat(anchors.rightShoulder.ellipsify(2));
-	expanded = expanded.concat(anchors.leftElbow.ellipsify());
-	expanded = expanded.concat(anchors.rightElbow.ellipsify());
-	expanded = expanded.concat(anchors.leftWrist.ellipsify());
-	expanded = expanded.concat(anchors.rightWrist.ellipsify());
-	expanded = expanded.concat(anchors.leftHip.ellipsify(2));
-	expanded = expanded.concat(anchors.rightHip.ellipsify(2));
-	expanded = expanded.concat(anchors.leftKnee.ellipsify());
-	expanded = expanded.concat(anchors.rightKnee.ellipsify());
-	expanded = expanded.concat(anchors.leftAnkle.ellipsify());
-	expanded = expanded.concat(anchors.rightAnkle.ellipsify());
-	let hullSet = hull(expanded, par.step1Roundness);
+	let expanded = kikiFromAnchors();
+	let hullSet = hull(expanded, par.roundnessNeutral);
 	// a hack, but it looks better than just doing endShape(CLOSE)
 	hullSet.push(hullSet[1]);
 	hullSet.push(hullSet[0]);
@@ -146,7 +131,7 @@ function renderShape1(shape) {
 	noFill();
 	beginShape();
 	shape.forEach(p => {
-		curveVertex(p[0], p[1]);
+		vertex(p[0], p[1]);
 	});
 	endShape();
 	pop();
@@ -186,7 +171,7 @@ function previewSkeleton() {
 		monitor.push();
 		mirror(monitor);
 		// realign with mirrored video
-		monitor.translate(200, 0);
+		monitor.translate(monitor.width / 2, 0);
 		monitor.stroke('#AFEEEE');
 		monitor.noFill();
 		monitor.line(
@@ -235,4 +220,26 @@ function playPreroll() {
 		dbg('preroll calling startRecording()');
 		startRecording();
 	}
+}
+
+function neutralFromAnchors() {
+	let newArr = [];
+	newArr = newArr.concat(anchors.nose.neutralExpand(3));
+	newArr = newArr.concat(anchors.leftEar.neutralExpand());
+	newArr = newArr.concat(anchors.rightEar.neutralExpand());
+	newArr = newArr.concat(anchors.rightEar.neutralExpand());
+	newArr = newArr.concat(anchors.rightEar.neutralExpand());
+	newArr = newArr.concat(anchors.leftShoulder.neutralExpand(2));
+	newArr = newArr.concat(anchors.rightShoulder.neutralExpand(2));
+	newArr = newArr.concat(anchors.leftElbow.neutralExpand(2));
+	newArr = newArr.concat(anchors.rightElbow.neutralExpand(2));
+	newArr = newArr.concat(anchors.leftWrist.neutralExpand(2));
+	newArr = newArr.concat(anchors.rightWrist.neutralExpand(2));
+	newArr = newArr.concat(anchors.leftHip.neutralExpand(2));
+	newArr = newArr.concat(anchors.rightHip.neutralExpand(2));
+	newArr = newArr.concat(anchors.leftKnee.neutralExpand(2));
+	newArr = newArr.concat(anchors.rightKnee.neutralExpand());
+	newArr = newArr.concat(anchors.leftAnkle.neutralExpand());
+	newArr = newArr.concat(anchors.rightAnkle.neutralExpand());
+	return newArr;
 }
