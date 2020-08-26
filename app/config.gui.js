@@ -38,7 +38,6 @@ class Paramaterize {
 		this.frameRate = 60;
 		this.recordFrames = 900; // 900 frames is about 15 seconds
 		this.preRecCounterFrames = 240; // 240 frames is about 4 seconds
-		this.showFrameRate = true;
 		this.videoSync = 0;
 		this.shapeStrokeWeight = 3.5;
 		this.padding = 200;
@@ -193,7 +192,6 @@ let f00 = gui.addFolder('General');
 f00.add(par, 'frameRate');
 f00.add(par, 'recordFrames');
 f00.add(par, 'preRecCounterFrames');
-f00.add(par, 'showFrameRate');
 f00.add(par, 'videoSync');
 f00.add(par, 'shapeStrokeWeight');
 f00.add(par, 'padding');

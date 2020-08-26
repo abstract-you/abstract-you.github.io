@@ -245,7 +245,7 @@ function previewExpression(faces) {
 	// monitor.scale(-1, 1);
 	monitor.text(
 		current + ' (' + round(score, 2) + ')',
-		monitor.width - box.x - box.width / 2,
+		monitor.width - box.bottomLeft.x - box.width / 2,
 		box.bottomLeft.y + 20
 	);
 	monitor.pop();
