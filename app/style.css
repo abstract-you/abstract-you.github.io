@@ -258,20 +258,21 @@ dd {
 }
 
 #about-page .sidebar img {
-	width: 301px;
-	height: 198px;
+	width: 300px;
+	/* height: 198px; */
 }
 
 figure {
 	margin: 0;
 	padding: 0;
-	margin-bottom: 110px;
+	margin-bottom: 99px;
 }
 
 figcaption {
-	margin-top: 9px;
+	margin-top: 12px;
 	font-size: 12px;
 	letter-spacing: 1.2px;
+	line-height: 21px;
 }
 
 /* ===controls */

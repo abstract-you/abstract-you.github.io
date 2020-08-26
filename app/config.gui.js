@@ -1,7 +1,7 @@
 class Paramaterize {
 	constructor() {
 		this.scene = '0';
-		this.debug = true;
+		this.debug = false;
 		// this.demoMode = true;
 
 		// 500x470
@@ -73,16 +73,16 @@ class Paramaterize {
 
 		// -----02 softer
 		this.blobModifier = 1;
-		this.roundnessSofter = 120;
+		this.roundnessSofter = 200;
 		this.blobAngleInc = 20;
 		this.blobMinRadius = 50;
-		this.blobMaxRadius = 110;
+		this.blobMaxRadius = 90;
 		this.blobMaxXNoise = 2;
 		this.blobMaxYNoise = 2;
 		this.blobPhaseShift = 0.001;
 		this.blobZOff = 0.01;
 		this.blob0Nose = 2;
-		this.blob0NoseInc = 6;
+		this.blob0NoseInc = 8;
 		this.blob1LeftEye = 0;
 		this.blob2RightEye = 0;
 		this.blob3LeftEar = 1.5;
@@ -101,26 +101,28 @@ class Paramaterize {
 		this.blob16RightAnkle = 1.5;
 
 		// -----02 sharper
-		this.roundnessSharper = 100;
+		this.roundnessSharper = 78;
 		this.starPoints = 7;
 		this.starInternalRadius = 35;
-		this.starExternalRadius = 70;
+		this.starExternalRadius = 90;
 		this.starNoiseRange = 50;
-		this.starNoiseStep = 0.01;
+		this.starXNoiseStep = 0.001;
+		this.starYNoiseStep = 0.001;
+		this.starPhaseShift = 0.001;
 		this.starModifier = 1;
-		this.star0Nose = 2.5;
-		this.star1LeftEye = 0;
-		this.star2RightEye = 0;
-		this.star3LeftEar = 0.5;
-		this.star4RightEar = 0.5;
+		this.star0Nose = 2;
+		this.star1LeftEye = 1;
+		this.star2RightEye = 1;
+		this.star3LeftEar = 1;
+		this.star4RightEar = 1;
 		this.star5LeftShoulder = 1;
 		this.star6RightShoulder = 1;
 		this.star7LeftElbow = 1;
 		this.star8RightElbow = 1;
 		this.star9LeftWrist = 1;
 		this.star10RightWrist = 1;
-		this.star11LeftHip = 1.5;
-		this.star12RightHip = 1.5;
+		this.star11LeftHip = 1;
+		this.star12RightHip = 1;
 		this.star13LeftKnee = 1;
 		this.star14RightKnee = 1;
 		this.star15LeftAnkle = 1;
@@ -227,7 +229,9 @@ f023.add(par, 'roundnessSharper');
 f023.add(par, 'starPoints');
 f023.add(par, 'starInternalRadius');
 f023.add(par, 'starExternalRadius');
-f023.add(par, 'starNoiseStep');
+f023.add(par, 'starXNoiseStep');
+f023.add(par, 'starYNoiseStep');
+f023.add(par, 'starPhaseShift');
 f023.add(par, 'star0Nose');
 f023.add(par, 'star1LeftEye');
 f023.add(par, 'star2RightEye');

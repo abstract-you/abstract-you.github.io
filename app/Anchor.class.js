@@ -152,7 +152,8 @@ class Anchor {
 		let y = this.position.y;
 		let newArr = [];
 
-		let offStep = par.starNoiseStep;
+		let xOffStep = par.starXNoiseStep;
+		let yOffStep = par.starYNoiseStep;
 		let radius1 = par.starInternalRadius * modifier;
 		let radius2 = par.starExternalRadius * modifier;
 		let npoints = par.starPoints;
@@ -166,32 +167,36 @@ class Anchor {
 			let sx =
 				map(
 					noise(this.starXOff, this.starYOff),
-					0,
+					// osnoise.noise2D(this.starXOff, this.starYOff),
+					-1,
 					1,
 					-par.starNoiseRange,
 					par.starNoiseRange
 				) +
 				x +
-				cos(a) * radius2;
-			this.starXOff += offStep;
+				cos(a - this.starPhase / 2) * radius2;
+			this.starXOff += xOffStep;
 			noiseSeed(this.seed);
 			let sy =
 				map(
 					noise(this.starXOff, this.starYOff),
-					0,
+					// osnoise.noise2D(this.starXOff, this.starYOff),
+					-1,
 					1,
 					-par.starNoiseRange,
 					par.starNoiseRange
 				) +
 				y +
-				sin(a) * radius2;
-			this.starYOff += offStep;
+				sin(a - this.starPhase / 2) * radius2;
+			this.starYOff += yOffStep;
 			newArr.push([sx, sy]);
-			sx = x + cos(a + halfAngle) * radius1;
-			sy = y + sin(a + halfAngle) * radius1;
+			sx = x + cos(a + halfAngle + this.starPhase) * radius1;
+			sy = y + sin(a + halfAngle + this.starPhase) * radius1;
 			newArr.push([sx, sy]);
 		}
 		pop();
+		this.starPhase += par.starPhaseShift;
+
 		return newArr;
 	}
 

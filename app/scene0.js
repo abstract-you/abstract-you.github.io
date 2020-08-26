@@ -64,18 +64,20 @@ function scene00() {
 				strokeWeight(par.shapeStrokeWeight);
 				noFill();
 				beginShape();
-				for (let a = 0; a < 360; a += 1) {
+
+				for (let a = 0; a < 360; a += 10) {
 					// Follow a circular path through the noise space to create a smooth flowing shape
-					let xoff = map(cos(a + phase), -1, 1, 0, 1);
-					let yoff = map(sin(a + phase), -1, 1, 0, 1);
-					let r = map(noise(xoff, yoff, zoff), 0, 1, 50, 60);
-					let x = r * cos(a);
-					let y = r * sin(a);
+					let xoff = map(cos(a + phase), -1, 1, 0, 3);
+					let yoff = map(sin(a + phase), -1, 1, 0, 2);
+					// let r = map(noise(xoff, yoff, zoff), 0, 1, 45, 75);
+					let r = map(osnoise.noise3D(xoff, yoff, zoff), 0, 1, 65, 75);
+					let x = r * cos(a - phase);
+					let y = r * sin(a - phase);
 					curveVertex(x, y);
 				}
 				endShape(CLOSE);
-				phase += 0.001;
-				zoff += 0.03;
+				phase += 0.05;
+				zoff += 0.01;
 				pop();
 			}
 		} else {
