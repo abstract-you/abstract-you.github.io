@@ -114,7 +114,7 @@ class Anchor {
 		return newArr;
 	}
 
-	blobify(modifier = 1) {
+	blobify(modifier = 1, inc = par.blobAngleInc) {
 		if (modifier === 0) {
 			return [];
 		}
@@ -124,12 +124,13 @@ class Anchor {
 		let x, y;
 		let newArr = [];
 
-		for (let a = 0; a < 360; a += par.blobAngleInc) {
+		for (let a = 0; a < 360; a += inc) {
 			let xoff = map(cos(a + this.blobPhase), -1, 1, 0, par.blobMaxXNoise);
 			let yoff = map(sin(a + this.blobPhase), -1, 1, 0, par.blobMaxYNoise);
 
 			noiseSeed(this.seed);
-			let n = noise(xoff, yoff, this.zoff);
+			// let n = noise(xoff, yoff, this.zoff);
+			let n = osnoise.noise3D(xoff, yoff, this.zoff);
 
 			let r = map(n, 0, 1, par.blobMinRadius, par.blobMaxRadius) * modifier;
 			x = px + r * cos(a);

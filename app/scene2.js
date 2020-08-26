@@ -9,7 +9,7 @@ function scene02() {
 			poses = null;
 			isPosenetReady = false;
 		}
-		sample.size(par.webcamWidth,par.webcamHeight);
+		sample.size(par.webcamWidth, par.webcamHeight);
 		sample.hide();
 		select('body').removeClass('light');
 
@@ -44,7 +44,7 @@ function scene02() {
 		monitor.show();
 
 		// ----- rewire ui
-		rewireUI()
+		rewireUI();
 
 		// ----- scene management
 		chooseScene('#scene-02');
@@ -76,8 +76,8 @@ function scene02() {
 			);
 			monitor.pop();
 		}
-		
-		let currentShapeType = 'softer'
+
+		let currentShapeType = 'softer';
 		// -----faceapi ready loaded and working
 		if (isFaceapiLoaded) {
 			// -----live expressions
@@ -90,11 +90,11 @@ function scene02() {
 
 				// draw a graph of expression data and show the current top expression
 				// (completely independently from drawing the shape)
-				if (detections[0] && par.showExpressionGraph) graphExpressions(detections);
+				if (detections[0] && par.showExpressionGraph)
+					graphExpressions(detections);
 
 				// show detection feedback on the webcam monitor
 				if (detections[0]) previewExpression(detections);
-
 			}
 			// -----play live shape
 			if (!full) replayShape2(history1, currentShapeType);
@@ -123,12 +123,12 @@ function scene02() {
 
 //--------------------------------------------------------------------------------
 
-// -----shape pipeline: step 2, stylize shape based on expression data 
+// -----shape pipeline: step 2, stylize shape based on expression data
 // (1) Anchors target history points to redraw the basic shape from step 1 (2) A
 // shape type is determined from expression data (3) Expanded shapes are drawn
 // around anchors based on the shape type (4) Convex hull is calculated from all
 // points to determine outline path. Roundness is set based on shape type (5)
-// Padding is addded to keep the shape centered 
+// Padding is addded to keep the shape centered
 // TRY. Create additional expansion points around torso and be tween limb points.
 // Especially for the star shape
 
@@ -349,7 +349,7 @@ function expandBlob() {
 	// FIXME: This is a bug
 	newArr = newArr.concat(anchors.rightAnkle.starify(0));
 
-	newArr = newArr.concat(anchors.nose.blobify(par.blob0Nose));
+	newArr = newArr.concat(anchors.nose.blobify(par.blob0Nose, par.blob0NoseInc));
 	newArr = newArr.concat(anchors.leftEar.blobify(par.blob1LeftEye));
 	newArr = newArr.concat(anchors.rightEar.blobify(par.blob2RightEye));
 	newArr = newArr.concat(anchors.rightEar.blobify(par.blob3LeftEar));

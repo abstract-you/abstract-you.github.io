@@ -1,7 +1,7 @@
 class Paramaterize {
 	constructor() {
 		this.scene = '0';
-		this.debug = false;
+		this.debug = true;
 		// this.demoMode = true;
 
 		// 500x470
@@ -72,32 +72,33 @@ class Paramaterize {
 		this.lockStar = false;
 
 		// -----02 softer
-		this.roundnessSofter = 210;
-		this.blobAngleInc = 24;
-		this.blobMinRadius = 10;
-		this.blobMaxRadius = 120;
-		this.blobMaxXNoise = 25;
-		this.blobMaxYNoise = 25;
-		this.blobPhaseShift = 0.005;
-		this.blobZOff = 0.007;
 		this.blobModifier = 1;
+		this.roundnessSofter = 120;
+		this.blobAngleInc = 20;
+		this.blobMinRadius = 50;
+		this.blobMaxRadius = 110;
+		this.blobMaxXNoise = 2;
+		this.blobMaxYNoise = 2;
+		this.blobPhaseShift = 0.001;
+		this.blobZOff = 0.01;
 		this.blob0Nose = 2;
+		this.blob0NoseInc = 6;
 		this.blob1LeftEye = 0;
 		this.blob2RightEye = 0;
-		this.blob3LeftEar = 0.5;
-		this.blob4RightEar = 0.5;
+		this.blob3LeftEar = 1.5;
+		this.blob4RightEar = 1.5;
 		this.blob5LeftShoulder = 1.5;
 		this.blob6RightShoulder = 1.5;
-		this.blob7LeftElbow = 1.3;
-		this.blob8RightElbow = 1.3;
-		this.blob9LeftWrist = 1;
-		this.blob10RightWrist = 1;
+		this.blob7LeftElbow = 1.5;
+		this.blob8RightElbow = 1.5;
+		this.blob9LeftWrist = 1.5;
+		this.blob10RightWrist = 1.5;
 		this.blob11LeftHip = 1.5;
 		this.blob12RightHip = 1.5;
-		this.blob13LeftKnee = 1.3;
-		this.blob14RightKnee = 1.3;
-		this.blob15LeftAnkle = 1;
-		this.blob16RightAnkle = 1;
+		this.blob13LeftKnee = 1.5;
+		this.blob14RightKnee = 1.5;
+		this.blob15LeftAnkle = 1.5;
+		this.blob16RightAnkle = 1.5;
 
 		// -----02 sharper
 		this.roundnessSharper = 100;
@@ -169,8 +170,8 @@ fr.add(par, 'showFrameRate');
 fr.add(par, 'hideShape');
 fr.add(par, 'showExpanded');
 fr.add(par, 'showAnchors');
-fr.add(par, 'showPose');
-fr.add(par, 'showHull');
+// fr.add(par, 'showPose');
+// fr.add(par, 'showHull');
 
 // -----01scene
 let f01 = gui.addFolder('Step 01');
@@ -199,6 +200,7 @@ f022.add(par, 'blobMaxYNoise');
 f022.add(par, 'blobPhaseShift');
 f022.add(par, 'blobZOff');
 f022.add(par, 'blob0Nose');
+f022.add(par, 'blob0NoseInc');
 f022.add(par, 'blob1LeftEye');
 f022.add(par, 'blob2RightEye');
 f022.add(par, 'blob3LeftEar');
@@ -264,7 +266,11 @@ fvs.add(par, 'sheight');
 fvs.add(par, 'webcamWidth');
 fvs.add(par, 'webcamHeight');
 
-gui.hide();
+if (par.debug) {
+	gui.close();
+} else {
+	gui.hide();
+}
 
 // this.dx = 380;
 // this.dy = 0;

@@ -9,6 +9,8 @@ let gifc;
 // scene manager
 let mgr;
 
+const osnoise = new OpenSimplexNoise();
+
 // shape recording in three commulative steps
 // step 1, anchor positions
 let history1 = [];
@@ -336,12 +338,12 @@ function chooseScene(sceneId) {
 	select(sceneId).removeClass('hidden');
 }
 
-// Use in draw() to show framerate in bottom right corner
+// Use in draw() to show framerate in bottom left corner
 function fps() {
 	push();
 	textSize(14);
 	fill(200);
-	text(floor(frameRate()), width - 38, height - 20);
+	text(floor(frameRate()), 18, height - 20);
 	pop();
 }
 
