@@ -1,12 +1,12 @@
 class Paramaterize {
 	constructor() {
-		this.scene = '1';
+		this.scene = '0';
 		this.debug = false;
 
 		// ----- general
 		this.frameRate = 60;
 		this.recordFrames = 900; // 900 frames is about 15 seconds
-		this.preRecCounterFrames = 20; // 240 frames is about 4 seconds
+		this.preRecCounterFrames = 240; // 240 frames is about 4 seconds
 		this.videoSync = 0;
 		this.shapeStrokeWeight = 3.5;
 		this.padding = 200;
@@ -29,8 +29,8 @@ class Paramaterize {
 		// -----neutral
 		this.roundnessNeutral = 250;
 		this.ellipseIncrement = 30;
-		this.ellipseMinRadius = 75;
-		this.ellipseMaxRadius = 75;
+		this.ellipseMinRadius = 65;
+		this.ellipseMaxRadius = 65;
 		this.ellipseOffsetIncrement = 0.01;
 		this.neutral0 = 2.5;
 		this.neutral1 = 0;
@@ -55,7 +55,7 @@ class Paramaterize {
 		this.roundnessBouba = 250;
 		this.angleIncBouba = 20;
 		this.minRadiusBouba = 5;
-		this.maxRadiusBouba = 90;
+		this.maxRadiusBouba = 95;
 		this.maxXNoiseBouba = 10;
 		this.maxYNoiseBouba = 10;
 		this.phaseShiftBouba = 0.2;
