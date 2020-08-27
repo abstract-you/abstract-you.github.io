@@ -191,6 +191,7 @@ class Anchor {
 				x +
 				cos(a) * radius2;
 			this.starXOff += par.xNoiseStepKiki;
+			this.starYOff += par.yNoiseStepKiki;
 			let sy =
 				map(
 					noise(this.starXOff, this.starYOff),
@@ -201,6 +202,7 @@ class Anchor {
 				) +
 				y +
 				sin(a) * radius2;
+			this.starXOff += par.xNoiseStepKiki;
 			this.starYOff += par.yNoiseStepKiki;
 			newArr.push([sx, sy]);
 			sx = x + cos(a + halfAngle + this.starPhase) * radius1;

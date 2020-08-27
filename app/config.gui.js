@@ -2,47 +2,15 @@ class Paramaterize {
 	constructor() {
 		this.scene = '1';
 		this.debug = false;
-		// this.demoMode = true;
-
-		// 500x470
-		// this.dx = 320;
-		// this.dy = 0;
-		// this.dwidth = 500;
-		// this.dheight = 470;
-		// this.sx = 80;
-		// this.sy = 0;
-		// this.swidth = 480;
-		// this.sheight = 480;
-
-		this.dx = 320;
-		this.dy = 0;
-		this.dwidth = 500;
-		this.dheight = 500;
-		this.sx = 80;
-		this.sy = 0;
-		this.swidth = 480;
-		this.sheight = 480;
-		this.webcamWidth = 627;
-		this.webcamHeight = 470;
-
-		// dx Number: the x-coordinate of the destination rectangle in which to draw the source image
-		// dy Number: the y-coordinate of the destination rectangle in which to draw the source image
-		// dWidth Number: the width of the destination rectangle
-		// dHeight Number: the height of the destination rectangle
-		// sx Number: the x-coordinate of the subsection of the source image to draw into the destination rectangle
-		// sy Number: the y-coordinate of the subsection of the source image to draw into the destination rectangle
-		// sWidth Number: the width of the subsection of the source image to draw into the destination rectangle (Optional)
-		// sHeight Number: the height of the subsection of the source image to draw into the destination rectangle (Optional)
 
 		// ----- general
 		this.frameRate = 60;
 		this.recordFrames = 900; // 900 frames is about 15 seconds
-		this.preRecCounterFrames = 240; // 240 frames is about 4 seconds
+		this.preRecCounterFrames = 20; // 240 frames is about 4 seconds
 		this.videoSync = 0;
 		this.shapeStrokeWeight = 3.5;
-		this.padding = 300;
+		this.padding = 200;
 		this.gifFrames = 100;
-		this.noseYOffset = 155;
 		this.topSpeed = 20;
 		this.maxAcc = 10;
 		this.minScore = 0;
@@ -86,8 +54,8 @@ class Paramaterize {
 		this.modifierBouba = 1;
 		this.roundnessBouba = 250;
 		this.angleIncBouba = 20;
-		this.minRadiusBouba = 60;
-		this.maxRadiusBouba = 100;
+		this.minRadiusBouba = 5;
+		this.maxRadiusBouba = 90;
 		this.maxXNoiseBouba = 10;
 		this.maxYNoiseBouba = 10;
 		this.phaseShiftBouba = 0.2;
@@ -113,7 +81,7 @@ class Paramaterize {
 
 		// -----kiki
 		this.modifierKiki = 1;
-		this.roundnessKiki = 177;
+		this.roundnessKiki = 100;
 		this.starPoints = 11;
 		this.starInternalRadius = 70;
 		this.starExternalRadius = 150;
@@ -141,7 +109,7 @@ class Paramaterize {
 
 		// -----01
 		this.boubaStep1 = false;
-		this.kikiStep1 = true;
+		this.kikiStep1 = false;
 
 		// -----02
 		this.showExpressionGraph = false;
@@ -153,6 +121,27 @@ class Paramaterize {
 		this.voiceMinPadding = 220;
 		this.phaseMaxOffset = 0.01;
 		this.phaseMax = 0.0001;
+		this.defaultScale = 0.1;
+
+		this.dx = 320;
+		this.dy = 0;
+		this.dwidth = 500;
+		this.dheight = 500;
+		this.sx = 80;
+		this.sy = 0;
+		this.swidth = 480;
+		this.sheight = 480;
+		this.webcamWidth = 627;
+		this.webcamHeight = 470;
+
+		// dx Number: the x-coordinate of the destination rectangle in which to draw the source image
+		// dy Number: the y-coordinate of the destination rectangle in which to draw the source image
+		// dWidth Number: the width of the destination rectangle
+		// dHeight Number: the height of the destination rectangle
+		// sx Number: the x-coordinate of the subsection of the source image to draw into the destination rectangle
+		// sy Number: the y-coordinate of the subsection of the source image to draw into the destination rectangle
+		// sWidth Number: the width of the subsection of the source image to draw into the destination rectangle (Optional)
+		// sHeight Number: the height of the subsection of the source image to draw into the destination rectangle (Optional)
 
 		this.nose0 = function () {};
 		this.leftEye1 = function () {};
@@ -197,7 +186,6 @@ f00.add(par, 'videoSync');
 f00.add(par, 'shapeStrokeWeight');
 f00.add(par, 'padding');
 f00.add(par, 'gifFrames');
-f00.add(par, 'noseYOffset');
 f00.add(par, 'topSpeed');
 f00.add(par, 'maxAcc');
 f00.add(par, 'minScore');
@@ -270,7 +258,6 @@ f022.add(par, 'bouba16');
 
 // -----kiki
 let f023 = gui.addFolder('kiki');
-f023.add(par, 'alwaysKiki');
 f023.add(par, 'modifierKiki');
 f023.add(par, 'roundnessKiki');
 f023.add(par, 'starPoints');
@@ -307,6 +294,7 @@ f01.add(par, 'kikiStep1');
 
 // -----02scene
 let f021 = gui.addFolder('Step 02');
+f021.add(par, 'alwaysKiki');
 f021.add(par, 'showExpressionGraph');
 
 // -----03
@@ -314,6 +302,7 @@ let f003 = gui.addFolder('Step 03');
 f003.add(par, 'voiceScaleModifier');
 f003.add(par, 'voiceMinPadding');
 f003.add(par, 'voiceMaxPadding');
+f003.add(par, 'defaultScale');
 
 // -----video sync
 let fvs = gui.addFolder('Video Sync');

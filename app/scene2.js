@@ -96,8 +96,12 @@ function scene02() {
 				// show detection feedback on the webcam monitor
 				if (detections[0]) previewExpression(detections);
 			}
-			// -----play live shape
-			if (!full) replayShape2(history1, currentShapeType);
+
+			// -----when not recording, disable shape feedback from expressions
+			if (!rec && !full) replayShape2(history1, 'neutral');
+
+			// -----while recording, show feedback on shape in real time
+			if (!full && rec) replayShape2(history1, currentShapeType);
 
 			// -----record shape
 			if (rec && !full) recordExpression(currentShapeType);

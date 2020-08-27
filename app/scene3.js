@@ -71,8 +71,11 @@ function scene03() {
 			if (rec && !full) recordVoice(micLevel);
 		}
 
-		// play live shape
-		if (!full) replayShape3(history1, finalShapeType, micLevel);
+		// -----while recording, show feedback on shape in real time
+		if (!full && rec) replayShape3(history1, finalShapeType, micLevel);
+
+		// -----when not recording, disable shape feedback from expressions
+		if (!full && !rec) replayShape3(history1, 'bouba', par.defaultScale);
 
 		// play recorded shape
 		if (full)
@@ -107,7 +110,7 @@ function makeShape3(pose, shapeType, micLevel, gif = false) {
 		// console.log(expanded)
 		hullSet = hull(expanded, par.roundnessKiki);
 	} else {
-		console.error('bad shape type from drawLiveShape3');
+		console.error(shapeType, ' bad shape type from drawLiveShape3');
 	}
 
 	hullSet.push(hullSet[1]);
