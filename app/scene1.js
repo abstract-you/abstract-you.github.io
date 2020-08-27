@@ -74,8 +74,10 @@ function scene01() {
 				// -----play live shape
 				// play a live shape when there is no recording
 				if (par.kikiStep1) {
+					makeShape1(pose, 200);
 					makeShape2(pose, 'kiki');
 				} else if (par.boubaStep1) {
+					makeShape1(pose, 200);
 					makeShape2(pose, 'bouba');
 				} else if (!full) {
 					makeShape1(pose);
@@ -104,7 +106,7 @@ function scene01() {
 // hull is calculated from all points to determine outline path (Roundness is
 // the concavity paramater, how tightly the hull wraps around the points.) (4)
 // Padding is addded to keep the shape centered
-function makeShape1(pose) {
+function makeShape1(pose, color) {
 	Anchor.chasePose(pose);
 	let expanded = neutralFromAnchors();
 	let hullSet = hull(expanded, par.roundnessNeutral);
@@ -115,7 +117,7 @@ function makeShape1(pose) {
 	let padded = remapFromPose(hullSet);
 	// -----
 	// -----final render call
-	if (!par.hideShape) renderShape1(padded);
+	if (!par.hideShape) renderShape1(padded, color);
 	// -----reference shapes
 	if (par.showExpanded || par.debug)
 		drawRef(remapFromPose(expanded), 'paleturquoise', 5);
@@ -124,9 +126,9 @@ function makeShape1(pose) {
 }
 
 // draw final shape outline
-function renderShape1(shape) {
+function renderShape1(shape, color = 0) {
 	push();
-	stroke(0);
+	stroke(color);
 	strokeWeight(par.shapeStrokeWeight);
 	noFill();
 	beginShape();

@@ -40,7 +40,7 @@ class Paramaterize {
 		this.preRecCounterFrames = 240; // 240 frames is about 4 seconds
 		this.videoSync = 0;
 		this.shapeStrokeWeight = 3.5;
-		this.padding = 200;
+		this.padding = 300;
 		this.gifFrames = 100;
 		this.noseYOffset = 155;
 		this.topSpeed = 20;
@@ -71,8 +71,8 @@ class Paramaterize {
 		this.neutral4 = 1;
 		this.neutral5 = 2;
 		this.neutral6 = 2;
-		this.neutral7 = 1;
-		this.neutral8 = 1;
+		this.neutral7 = 2;
+		this.neutral8 = 2;
 		this.neutral9 = 1;
 		this.neutral10 = 1;
 		this.neutral11 = 1;
@@ -84,7 +84,7 @@ class Paramaterize {
 
 		// -----bouba
 		this.modifierBouba = 1;
-		this.roundnessBouba = 180;
+		this.roundnessBouba = 250;
 		this.angleIncBouba = 20;
 		this.minRadiusBouba = 60;
 		this.maxRadiusBouba = 100;
@@ -100,8 +100,8 @@ class Paramaterize {
 		this.bouba4 = 1;
 		this.bouba5 = 2;
 		this.bouba6 = 2;
-		this.bouba7 = 1;
-		this.bouba8 = 1;
+		this.bouba7 = 2;
+		this.bouba8 = 2;
 		this.bouba9 = 1;
 		this.bouba10 = 1;
 		this.bouba11 = 1;
@@ -113,23 +113,23 @@ class Paramaterize {
 
 		// -----kiki
 		this.modifierKiki = 1;
-		this.roundnessKiki = 78;
-		this.starPoints = 7;
-		this.starInternalRadius = 35;
-		this.starExternalRadius = 90;
+		this.roundnessKiki = 177;
+		this.starPoints = 11;
+		this.starInternalRadius = 70;
+		this.starExternalRadius = 150;
 		this.noiseRangeKiki = 50;
-		this.xNoiseStepKiki = 0.001;
-		this.yNoiseStepKiki = 0.001;
-		this.phaseShiftKiki = 0.001;
+		this.xNoiseStepKiki = 0.01;
+		this.yNoiseStepKiki = 0.01;
+		this.phaseShiftKiki = 0.01;
 		this.kiki0 = 2;
 		this.kiki1 = 0;
-		this.kiki2 = 1;
-		this.kiki3 = 1;
-		this.kiki4 = 1;
+		this.kiki2 = 0;
+		this.kiki3 = 0;
+		this.kiki4 = 0;
 		this.kiki5 = 2;
 		this.kiki6 = 2;
-		this.kiki7 = 1;
-		this.kiki8 = 1;
+		this.kiki7 = 2;
+		this.kiki8 = 2;
 		this.kiki9 = 1;
 		this.kiki10 = 1;
 		this.kiki11 = 1;
@@ -140,8 +140,8 @@ class Paramaterize {
 		this.kiki16 = 1;
 
 		// -----01
-		this.boubaStep1 = true;
-		this.kikiStep1 = false;
+		this.boubaStep1 = false;
+		this.kikiStep1 = true;
 
 		// -----02
 		this.showExpressionGraph = false;
@@ -276,6 +276,7 @@ f023.add(par, 'roundnessKiki');
 f023.add(par, 'starPoints');
 f023.add(par, 'starInternalRadius');
 f023.add(par, 'starExternalRadius');
+f023.add(par, 'noiseRangeKiki');
 f023.add(par, 'xNoiseStepKiki');
 f023.add(par, 'yNoiseStepKiki');
 f023.add(par, 'phaseShiftKiki');
