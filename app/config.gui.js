@@ -1,6 +1,6 @@
 class Paramaterize {
 	constructor() {
-		this.scene = '0';
+		this.scene = '1';
 		this.debug = false;
 		// this.demoMode = true;
 
@@ -45,7 +45,7 @@ class Paramaterize {
 		this.noseYOffset = 155;
 		this.topSpeed = 20;
 		this.maxAcc = 10;
-		this.minScore = 0.5;
+		this.minScore = 0;
 
 		// -----reference shapes
 		this.hideShape = false;
@@ -58,65 +58,58 @@ class Paramaterize {
 		this.showCurves = true;
 		this.showFrameRate = false;
 
-		// -----01 ellipse
-		this.boubaStep1 = false;
-		this.kikiStep1 = false;
+		// -----neutral
+		this.roundnessNeutral = 250;
+		this.ellipseIncrement = 30;
+		this.ellipseMinRadius = 75;
+		this.ellipseMaxRadius = 75;
 		this.ellipseOffsetIncrement = 0.01;
-		this.ellipseMinRadius = 50;
-		this.ellipseMaxRadius = 50;
-		this.ellipseIncrement = 40;
-		this.roundnessNeutral = 200;
-
-		// -----02
-		this.showExpressionGraph = false;
-		this.alwaysKiki = false;
-
-		this.neutral0 = 2;
+		this.neutral0 = 2.5;
 		this.neutral1 = 0;
 		this.neutral2 = 0;
-		this.neutral3 = 1.5;
-		this.neutral4 = 1.5;
-		this.neutral5 = 1.5;
-		this.neutral6 = 1.5;
-		this.neutral7 = 1.5;
-		this.neutral8 = 1.5;
-		this.neutral9 = 1.5;
-		this.neutral10 = 1.5;
-		this.neutral11 = 1.5;
-		this.neutral12 = 1.5;
-		this.neutral13 = 1.5;
-		this.neutral14 = 1.5;
-		this.neutral15 = 1.5;
-		this.neutral16 = 1.5;
+		this.neutral3 = 1;
+		this.neutral4 = 1;
+		this.neutral5 = 2;
+		this.neutral6 = 2;
+		this.neutral7 = 1;
+		this.neutral8 = 1;
+		this.neutral9 = 1;
+		this.neutral10 = 1;
+		this.neutral11 = 1;
+		this.neutral12 = 1;
+		this.neutral13 = 1;
+		this.neutral14 = 1;
+		this.neutral15 = 1;
+		this.neutral16 = 1;
 
 		// -----bouba
 		this.modifierBouba = 1;
-		this.roundnessBouba = 150;
+		this.roundnessBouba = 180;
 		this.angleIncBouba = 20;
-		this.minRadiusBouba = 70;
-		this.maxRadiusBouba = 90;
-		this.maxXNoiseBouba = 2;
-		this.maxYNoiseBouba = 2;
-		this.phaseShiftBouba = 0.01;
-		this.zOffBouba = 0.05;
-		this.bouba0 = 2;
-		this.bouba0steps = 8;
+		this.minRadiusBouba = 60;
+		this.maxRadiusBouba = 100;
+		this.maxXNoiseBouba = 10;
+		this.maxYNoiseBouba = 10;
+		this.phaseShiftBouba = 0.2;
+		this.zOffBouba = 0.007;
+		this.bouba0steps = 10;
+		this.bouba0 = 2.2;
 		this.bouba1 = 0;
 		this.bouba2 = 0;
-		this.bouba3 = 1.5;
-		this.bouba4 = 1.5;
-		this.bouba5 = 1.5;
-		this.bouba6 = 1.5;
-		this.bouba7 = 1.5;
-		this.bouba8 = 1.5;
-		this.bouba9 = 1.5;
-		this.bouba10 = 1.5;
-		this.bouba11 = 1.5;
-		this.bouba12 = 1.5;
-		this.bouba13 = 1.5;
-		this.bouba14 = 1.5;
-		this.bouba15 = 1.5;
-		this.bouba16 = 1.5;
+		this.bouba3 = 1;
+		this.bouba4 = 1;
+		this.bouba5 = 2;
+		this.bouba6 = 2;
+		this.bouba7 = 1;
+		this.bouba8 = 1;
+		this.bouba9 = 1;
+		this.bouba10 = 1;
+		this.bouba11 = 1;
+		this.bouba12 = 1;
+		this.bouba13 = 1;
+		this.bouba14 = 1;
+		this.bouba15 = 1;
+		this.bouba16 = 1;
 
 		// -----kiki
 		this.modifierKiki = 1;
@@ -129,12 +122,12 @@ class Paramaterize {
 		this.yNoiseStepKiki = 0.001;
 		this.phaseShiftKiki = 0.001;
 		this.kiki0 = 2;
-		this.kiki1 = 1;
+		this.kiki1 = 0;
 		this.kiki2 = 1;
 		this.kiki3 = 1;
 		this.kiki4 = 1;
-		this.kiki5 = 1;
-		this.kiki6 = 1;
+		this.kiki5 = 2;
+		this.kiki6 = 2;
 		this.kiki7 = 1;
 		this.kiki8 = 1;
 		this.kiki9 = 1;
@@ -146,7 +139,15 @@ class Paramaterize {
 		this.kiki15 = 1;
 		this.kiki16 = 1;
 
-		// -----scene03
+		// -----01
+		this.boubaStep1 = true;
+		this.kikiStep1 = false;
+
+		// -----02
+		this.showExpressionGraph = false;
+		this.alwaysKiki = false;
+
+		// -----03
 		this.voiceScaleModifier = 1;
 		this.voiceMaxPadding = -20;
 		this.voiceMinPadding = 220;
@@ -212,7 +213,12 @@ fr.add(par, 'showAnchors');
 
 // -----neutral
 
-let f011 = gui.addFolder('neutral/step1');
+let f011 = gui.addFolder('neutral');
+f011.add(par, 'roundnessNeutral');
+f011.add(par, 'ellipseIncrement');
+f011.add(par, 'ellipseMinRadius');
+f011.add(par, 'ellipseMaxRadius');
+f011.add(par, 'ellipseOffsetIncrement');
 f011.add(par, 'neutral0');
 f011.add(par, 'neutral1');
 f011.add(par, 'neutral2');
@@ -242,8 +248,8 @@ f022.add(par, 'maxXNoiseBouba');
 f022.add(par, 'maxYNoiseBouba');
 f022.add(par, 'phaseShiftBouba');
 f022.add(par, 'zOffBouba');
-f022.add(par, 'bouba0');
 f022.add(par, 'bouba0steps');
+f022.add(par, 'bouba0');
 f022.add(par, 'bouba1');
 f022.add(par, 'bouba2');
 f022.add(par, 'bouba3');
@@ -297,11 +303,6 @@ let f01 = gui.addFolder('Step 01');
 
 f01.add(par, 'boubaStep1');
 f01.add(par, 'kikiStep1');
-f01.add(par, 'roundnessNeutral');
-f01.add(par, 'ellipseIncrement', 2);
-f01.add(par, 'ellipseMinRadius');
-f01.add(par, 'ellipseMaxRadius');
-f01.add(par, 'ellipseOffsetIncrement');
 
 // -----02scene
 let f021 = gui.addFolder('Step 02');
@@ -347,7 +348,7 @@ partIndex.add(par, 'leftAnkle15');
 partIndex.add(par, 'rightAnkle16');
 
 if (par.debug) {
-	gui.close();
+	gui.open();
 } else {
 	gui.hide();
 }
