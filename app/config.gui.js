@@ -1,16 +1,16 @@
 class Paramaterize {
 	constructor() {
-		this.scene = '0';
+		this.scene = '1';
 		this.debug = false;
 
 		// ----- general
 		this.frameRate = 60;
 		this.recordFrames = 900; // 900 frames is about 15 seconds
-		this.preRecCounterFrames = 240; // 240 frames is about 4 seconds
+		this.preRecCounterFrames = 24; // 240 frames is about 4 seconds
 		this.videoSync = 0;
 		this.shapeStrokeWeight = 3.5;
 		this.padding = 200;
-		this.gifFrames = 100;
+		this.gifFrames = 10;
 		this.topSpeed = 20;
 		this.maxAcc = 10;
 		this.minScore = 0;

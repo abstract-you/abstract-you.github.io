@@ -193,6 +193,15 @@ function setup() {
 	sceneRouter();
 	// required for making audio work for the microphone (in scene3)
 	getAudioContext().suspend();
+	// Check for something in localstroage
+	isDownloaded = store('downloadedShape');
+	if (isDownloaded) {
+		console.log('download found');
+		history1 = store('history1');
+		history2 = store('history2');
+		history3 = store('history3');
+		mgr.showScene(scene04);
+	}
 }
 
 function draw() {

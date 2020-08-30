@@ -80,8 +80,6 @@ function scene00() {
 				pop();
 			}
 		} else {
-			// FIXME: replace with Material Design spinner medium
-			// FIXME: try loading with canvas already white
 			// loading animation while we wait
 			background(colors.dark);
 			let r = cos(frameCount) * 50;

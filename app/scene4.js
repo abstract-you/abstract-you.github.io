@@ -24,13 +24,16 @@ function scene04() {
 			}
 		}
 
+		savedShape = getItem('savedShape');
+		if (savedShape) console.log(savedShape);
+
 		// check results of previous steps
 		history2
 			? (finalShapeType = analyzeExpressionHistory(history2))
 			: (finalShapeType = 'bouba');
 		history3
 			? (finalScale = analyzeVoiceHistory(history3))
-			: (finalScale = 0.2);
+			: (finalScale = par.defaultScale);
 
 		// -----page
 		select('body').addClass('light');
@@ -81,7 +84,11 @@ function scene04() {
 			capturer.stop();
 			capturer.save();
 			//TODO: stop CCapture and resume animation
-			mgr.showScene(mgr.scene.fnScene);
+			store('downloadedShape', true);
+			store('history1', history1);
+			store('history2', history2);
+			store('history3', history3);
+			refreshPage();
 		}
 
 		// -----admin
