@@ -1,426 +1,262 @@
 function scene02() {
-	// --enter
 	this.enter = function () {
+		dbg('scene02');
+		frameRate(par.frameRate);
+		// ----- clean-up from previous scenes
+		noseAnchor = '';
 		if (posenet) {
 			posenet.removeAllListeners();
 			poses = null;
+			isPosenetReady = false;
 		}
-		faceapiStandby = false;
-		faceapi.detect(gotFaces);
-		if (!isFaceApiReady) faceapi = ml5.faceApi(sample, faceOptions, faceReady);
+		sample.size(par.webcamWidth, par.webcamHeight);
+		sample.hide();
+		select('body').removeClass('light');
+
+		// -----load a prerecordeded dataset if there's nothing from step 1
+		// dancer.js should be a posenet recording of a person dancing. It
+		// also stores skeleton data so first we're extracting just the poses
+		if (history1.length === 0) {
+			recordedPose.forEach(p => {
+				if (p) history1.push(p.pose.keypoints);
+			});
+		}
+
+		// ----- reset state vars
 		history2 = [];
-		resetRecVariables();
-		chooseScene('#scene-02');
-		canvas.parent('#canvas-02');
+		full = false;
+		rec = false;
+		preroll = false;
+		play = false;
+
+		// -----scene setup
+		// -----faceapi
+		isFaceapiStandby = false;
+		// kickstart face detection
+		// gotFaces() calls itelfs every frame while isFaceapiStandby is false
+		faceapi.detect(gotFaces);
+
+		// ----- page layout
+		sketchCanvas.parent('#canvas-02');
 		resizeCanvas(820, 820);
-		vf.parent('#webcam-monitor-02');
+		// show preview in secondary canvas
+		monitor.parent('#webcam-monitor-02');
+		monitor.show();
 
+		// ----- rewire ui
+		rewireUI();
 
-		recButton = select('#record-button-02');
-		recButton.html('Record');
-		recButton.removeClass('primary');
-		recButton.removeClass('rec');
-		recButton.removeClass('preroll');
-		recButton.mousePressed(() => {
-			noPreroll();
-		});
-		recButton.show();
-		counterButton = select('#counter-02');
-		counterButton.show();
-		redoButton = select('#redo-02');
-		redoButton.mousePressed(() => {
-			mgr.showScene(scene02);
-		});
-		redoButton.hide();
-		nextButton = select('#next-button-02');
-		nextButton.mousePressed(() => {
-			mgr.showScene(scene03);
-		});
-		select('#next-button-03').mousePressed(()=>{
-			mgr.showScene(scene03)
-		})
-		nextButton.hide();
+		// ----- scene management
+		chooseScene('#scene-02');
 	};
 
 	// --draw
 	this.draw = function () {
-		background('#f9f9f9');
-		mirror(); // Mirror canvas to match mirrored video
-		// The preview is 500x470 but the cam feed is 627x470
-		if (sample) vf.image(sample, -50, 0);
-		// if (par.showHUD) expressionReference();
-		if (faceapiLoaded) {
-			// First just the graph
-			if (detections[0] && par.debug) graphExpressions();
-			if (!full && history1[0] && detections[0]) {
-				// Play the recording from the previous step with expressions applied
-				// Record into
-				playLiveShape2(history1);
-			} else if (full && history2[0]) {
-				// Play the recording	from this step (using the logic from the next step)
-				playHistoryShape2(history1, analyzeExpressionHistory(history2));
-				// playShape3(history2);
-			} else if (par.useSamplePose) {
-				// Play a prerecorded pose
-				playLiveShape2(samplePose);
+		// -----prepare the frame
+		background(colors.primary);
+		// show a dark background on the webcam monitor until the webcam feed starts
+		monitor.background(0);
+		// mirror the canvas to match the mirrored video from the camera
+		translate(width, 0);
+		scale(-1, 1);
+		// render video on the monitor canvas and center it
+		if (sample) {
+			monitor.push();
+			mirror(monitor);
+			monitor.image(
+				sample,
+				par.dx,
+				par.dy,
+				par.dwidth,
+				par.dheight,
+				par.sx,
+				par.sy,
+				par.swidth,
+				par.sheight
+			);
+			monitor.pop();
+		}
+
+		let currentShapeType = 'bouba';
+		// -----faceapi ready loaded and working
+		if (isFaceapiLoaded) {
+			// -----live expressions
+			if (detections[0]) {
+				if (par.alwaysKiki) {
+					currentShapeType = 'kiki';
+				} else {
+					currentShapeType = getShapeType();
+				}
+
+				// draw a graph of expression data and show the current top expression
+				// (completely independently from drawing the shape)
+				if (detections[0] && par.showExpressionGraph)
+					graphExpressions(detections);
+
+				// show detection feedback on the webcam monitor
+				if (detections[0]) previewExpression(detections);
 			}
+			if (!full && !rec) {
+				// -----keep playing the step1 shape until we start recording
+				replayShape1();
+			} else if (!full && rec) {
+				// -----draw the live shape while recording
+				replayShape2(history1, currentShapeType);
+				// -----record shape
+				recordExpression(currentShapeType);
+			}
+
+			// -----replay record shape
+			if (full) replayShape2(history1, analyzeExpressionHistory(history2));
+
+			// -----admin
+			if (par.showFrameRate || par.debug) {
+				push();
+				mirror();
+				fps();
+				pop();
+			}
+
+			// -----faceapi still not ready
 		} else {
-			// Show a notice if we have to wait for the api
+			// show a loading screen if faceapi is not ready yet
 			checkFaceApi();
 		}
-		if (par.frameRate) fps();
 	};
 }
 
-// Plays the history from step1 and applies expression data on top of it
-// Gets loaded with `history1` which is an array of posenet poses
-function playLiveShape2(history) {
-	let cp = frameCount % history.length; // TODO: sync iterator
-	drawLiveShape2(history[cp]);
+//--------------------------------------------------------------------------------
+
+// -----shape pipeline: step 2, stylize shape based on expression data
+// (1) Anchors target history points to redraw the basic shape from step 1 (2) A
+// shape type is determined from expression data (3) Expanded shapes are drawn
+// around anchors based on the shape type (4) Convex hull is calculated from all
+// points to determine outline path. Roundness is set based on shape type (5)
+// Padding is addded to keep the shape centered
+// TRY. Create additional expansion points around torso and between limb points.
+// Especially for the star shape (to keep the convex hull from collapsing)
+
+function makeShape2(pose, shapeType) {
+	// set up anchors
+	Anchor.chasePose(pose);
+	// expand and get hull based on live shape type
+	let expanded = [];
+	let hullSet = [];
+	if (shapeType === 'bouba') {
+		expanded = boubaFromAnchors();
+		hullSet = hull(expanded, par.roundnessBouba);
+	} else if (shapeType === 'kiki') {
+		expanded = kikiFromAnchors();
+		hullSet = hull(expanded, par.roundnessKiki);
+	} else if (shapeType === 'neutral') {
+		expanded = neutralFromAnchors();
+		hullSet = hull(expanded, par.roundnessNeutral);
+		// should look the same as step 1
+	} else {
+		console.error('bad shape type from makeShape2');
+	}
+	// console.log('expanded:', expanded)
+	// console.log('hullSet:', hullSet)
+	// a hack, but it looks better than just doing endShape(CLOSE)
+	hullSet.push(hullSet[1]);
+	hullSet.push(hullSet[0]);
+
+	// remap to canvas and apply padding
+	let padded = remapFromPose(hullSet);
+	// -----
+	// -----final render call
+	if (!par.hideShape) renderShape2(padded, shapeType);
+	// -----reference shapes
+	if (par.showExpanded || par.debug)
+		drawRef(remapFromPose(expanded), 'paleturquoise', 5);
+	if (par.showHullset || par.debug) drawRef(remapFromPose(hullSet), 'cyan', 5);
+	// (anchors draw their own reference after retaregtting)
 }
 
-function drawLiveShape2(points) {
-	let shapeType = getShapeType();
-	if (rec && detections[0]) recordExpression(shapeType);
-
-	retargetAnchorsFromPose(points);
-
-	if (shapeType === 'softer') {
-		expanded = softerBody(anchors);
-	} else {
-		expanded = sharperBody(anchors);
-	}
-
-	// Show expansions for reference
-	if (par.showExpanded) {
-		push();
-		stroke('paleturquoise');
-		strokeWeight(5);
-		expanded.forEach(p => {
-			point(p[0], p[1]);
+// draw final shape outline
+function renderShape2(shape, shapeType) {
+	push();
+	stroke(0);
+	strokeWeight(par.shapeStrokeWeight);
+	noFill();
+	beginShape();
+	if (shapeType === 'bouba') {
+		shape.forEach(p => {
+			curveVertex(p[0], p[1]);
 		});
-		pop();
-	}
-
-	if (shapeType === 'softer') {
-		hullSet = hull(expanded, par.roundnessSofter);
-	} else {
-		hullSet = hull(expanded, par.roundnessSharper);
-	}
-	let padded = [];
-
-	hullSet.forEach(p => {
-		padded.push([
-			remap(p[0], par.sampleWidth, width, par.padding2),
-			remap(p[1], par.sampleHeight, height, par.padding2),
-		]);
-	});
-
-	push();
-	stroke(0);
-	strokeWeight(par.shapeStrokeWeight);
-	noFill();
-	beginShape();
-	padded.forEach(p => {
-		if (shapeType === 'softer') {
-			curveVertex(p[0], p[1]);
-		} else {
+	} else if (shapeType === 'kiki') {
+		shape.forEach(p => {
 			vertex(p[0], p[1]);
-		}
-	});
-
-	endShape(CLOSE);
+		});
+	} else if (shapeType === 'neutral') {
+		shape.forEach(p => {
+			vertex(p[0], p[1]);
+		});
+	} else {
+		console.error('bad shape type from renderShape2');
+	}
+	endShape();
 	pop();
 }
 
-// Play from a stored array of anchor positions and use the shaetype to determine how to expand them
-function playHistoryShape2(history, shapeType) {
-	if (!history[0]) {
-		history = samplePose;
-	}
+function replayShape2(history, expression) {
 	let cp = frameCount % history.length;
-	drawHistoryShape2(history[cp], shapeType);
+	makeShape2(history[cp], expression);
 }
 
-function drawHistoryShape2(history, shapeType) {
-	retargetAnchorsFromPose(history);
-	if (shapeType === 'softer') {
-		expanded = softerBody(anchors);
-	} else {
-		expanded = sharperBody(anchors);
-	}
-
-	if (shapeType === 'softer') {
-		hullSet = hull(expanded, par.roundnessSofter);
-	} else {
-		hullSet = hull(expanded, par.roundnessSharper);
-	}
-
-	let padded = [];
-
-	hullSet.forEach(p => {
-		padded.push([
-			remap(p[0], par.sampleWidth, width, par.padding2),
-			remap(p[1], par.sampleHeight, height, par.padding2),
-		]);
-	});
-
-	push();
-	stroke(0);
-	strokeWeight(par.shapeStrokeWeight);
-	noFill();
-	beginShape();
-	padded.forEach(p => {
-		if (shapeType === 'softer') {
-			curveVertex(p[0], p[1]);
-		} else {
-			vertex(p[0], p[1]);
-		}
-	});
-
-	endShape(CLOSE);
-	pop();
-}
-
-function sharperBody(pose) {
-	// [{pos,part}...]
-	// Needs an array of objects that have postion.x,position.y,part
-	// Will add points around the skeleton to increase the surface area
-	let newArr = [];
-
-	pose.forEach((p, i) => {
-		switch (p.part) {
-			case 'nose':
-				newArr = newArr.concat(
-					star(
-						p.position.x,
-						p.position.y,
-						par.innerStar, // radius for inner circle
-						par.outerStar, // radius for external circle
-						par.starPoints // number of points
-					)
-				);
-				break;
-			// case 'leftEar':
-			// case 'rightEar':
-			// case 'leftEye':
-			// case 'rightEye':
-			case 'leftShoulder':
-			case 'rightShoulder':
-			case 'leftElbow':
-			case 'rightElbow':
-			case 'leftWrist':
-			case 'rightWrist':
-			case 'leftHip':
-			case 'rightHip':
-			case 'leftKnee':
-			case 'rightKnee':
-			case 'leftAnkle':
-			case 'rightAnkle':
-			default:
-				if (!par.noseOnly)
-					newArr = newArr.concat(
-						star(
-							p.position.x,
-							p.position.y,
-							par.innerStar,
-							par.outerStar,
-							par.starPoints
-						)
-					);
-				break;
-		}
-	});
-
-	return newArr;
-}
-
-function star(x, y, radius1, radius2, npoints) {
-	let newArr = [];
-	let xoff = x;
-	let yoff = y;
-	let offStep = 0.01;
-	push();
-	angleMode(RADIANS);
-	let angle = TWO_PI / npoints;
-	let halfAngle = angle / 2.0;
-	for (let a = 0; a < TWO_PI; a += angle) {
-		let sx = map(noise(xoff, yoff), 0, 1, -10, 10) + x + cos(a) * radius2;
-		xoff += offStep;
-		let sy = map(noise(xoff, yoff), 0, 1, -10, 10) + y + sin(a) * radius2;
-		yoff += offStep;
-		newArr.push([sx, sy]);
-		sx = x + cos(a + halfAngle) * radius1;
-		sy = y + sin(a + halfAngle) * radius1;
-		newArr.push([sx, sy]);
-	}
-	pop();
-	return newArr;
-}
-
-function softerBody(pose) {
-	// [{pos,part}...]
-	// Needs an array of objects that have position.x,position.y,part
-	// Will add points around the skeleton to increase the surface area
-	let newArr = [];
-
-	// We'll use these later for the torso
-	let l1, l2, r1, r2;
-
-	/*  
-
-	point,
-	i = 0,
-	angles = par.angles,
-	minR = 5,
-	maxR = 100,
-	maxX = 2,
-	maxY = 2,
-	maxOff = par.phase,
-	effect = par.effect
-
-	First argument is the point to expand. 
-	Second argument is the distance between
-	each point in angles (for example, an angle distance of 1 will add 360
-	points). 
-	Next two arguments are minimum and maxium radius. 
-	Fifth and sixth arguments control how fast the shape will oscilate within 
-	the min/max radius values.
-	Seventh argument is the maximum phase offset (higher values make the shape 
-	appear to rotate.)
-	Eighth argument is an iterator used for the noise function.
-	Last argument is a modifier applied to every point for adding jitter.
-
-
-	*/
-	pose.forEach((p, i) => {
-		switch (p.part) {
-			case 'nose':
-				let tempNose = {};
-				newArr = newArr.concat(expandBlob(p, 1, 10, 100));
-				break;
-			case 'leftEar':
-			case 'rightEar':
-				newArr.push([p.position.x, p.position.y]);
-				break;
-			case 'leftEye':
-			case 'rightEye':
-				newArr.push([p.position.x, p.position.y]);
-				break;
-			// Arms
-			case 'leftShoulder':
-				l1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 1, 10, 50, 50, 20, -1));
-				break;
-			case 'rightShoulder':
-				r1 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p, 1, 10, 50, 50, 20, -1));
-				break;
-			case 'leftElbow':
-			case 'rightElbow':
-			case 'leftWrist':
-			case 'rightWrist':
-			case 'leftHip':
-				l2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p));
-				break;
-			case 'rightHip':
-				r2 = createVector(p.position.x, p.position.y);
-				newArr = newArr.concat(expandBlob(p));
-				break;
-			// case 'leftKnee':
-			// case 'rightKnee':
-			// case 'leftAnkle':
-			// case 'rightAnkle':
-			default:
-				newArr.push([p.position.x, p.position.y]);
-				break;
-		}
-	});
-
-	// Torso
-	let leftSide = p5.Vector.lerp(l1, l2, 0.5);
-	let rightSide = p5.Vector.lerp(r1, r2, 0.5);
-	let middle1 = p5.Vector.lerp(l1, r1, 0.5);
-	let middle2 = p5.Vector.lerp(l2, r2, 0.5);
-
-	newArr = newArr.concat(expandBlob(leftSide));
-	newArr = newArr.concat(expandBlob(rightSide));
-	newArr = newArr.concat(expandBlob(middle1));
-	newArr = newArr.concat(expandBlob(middle2));
-
-	return newArr;
-}
-
-function expandBlob(
-	point,
-	angles = par.angles,
-	minR = 5,
-	maxR = 100,
-	maxX = 2,
-	maxY = 2,
-	maxOff = par.phase,
-	effect = par.effect
-) {
-	let x, y;
-	let px, py;
-	let newArr = [];
-	if (point.x) {
-		px = point.x;
-		py = point.y;
-	} else if (point.position) {
-		px = point.position.x;
-		py = point.position.y;
-	} else if (point[0]) {
-		px = point[0];
-		py = point[1];
-	}
-	for (let a = 0; a < 360; a += par.angles) {
-		let xoff = map(cos(a + phase), -1, 1, 0, par.maxY * par.effect);
-		let yoff = map(sin(a + phase), -1, 1, 0, par.maxX * par.effect);
-		let r = map(
-			noise(xoff, yoff, zoff),
-			0,
-			1,
-			par.minR * par.effect,
-			par.maxR * par.effect
-		);
-		x = px + r * cos(a);
-		y = py + r * sin(a);
-		newArr.push([x, y]);
-	}
-	let pOff = map(noise(zoff), 0, 1, 0, par.phase * par.effect);
-	phase += pOff;
-	zoff += par.zNoiseOffset;
-	return newArr;
-}
-
-function graphExpressions() {
+// draws an expression graph for the first detected face at top left of canvas
+// show current expression on the bottom of the canvas
+function graphExpressions(faces) {
 	let expressions;
 	push();
 	translate(width, 0);
 	scale(-1, 1);
-	if (detections) {
-		if (detections.length > 0) {
-			({ expressions } = detections[0]);
-			let keys = Object.keys(expressions);
-			keys.forEach((item, idx) => {
-				textAlign(RIGHT);
-				text(item, 110, idx * 20 + 22);
-				const val = map(expressions[item], 0, 1, 0, 100);
-				text(floor(val), 140, idx * 20 + 22);
-				rect(160, idx * 20 + 10, val, 15);
-			});
-			let current = topExpression(detections[0].expressions);
-			textAlign(CENTER);
-			textSize(18);
-			text(current, width / 2, height - 18);
-			textAlign(LEFT);
-		}
-	}
+	({ expressions } = faces[0]);
+	Object.keys(expressions).forEach((item, idx) => {
+		textAlign(RIGHT);
+		text(item, 110, idx * 20 + 22);
+		const val = map(expressions[item], 0, 1, 0, 100);
+		text(floor(val), 140, idx * 20 + 22);
+		rect(160, idx * 20 + 10, val, 15);
+	});
+	let current = topExpression(faces[0].expressions);
+	textAlign(CENTER);
+	textSize(18);
+	text(current, width / 2, height - 18);
+	textAlign(LEFT);
 	pop();
 }
 
+// draws a sqaure around the face in the monitor
+// shows expression and score under the square
+function previewExpression(faces) {
+	let current = topExpression(faces[0].expressions);
+	let score = faces[0].expressions[current];
+	let box = faces[0].detection.box;
+	monitor.stroke('blue');
+	monitor.noFill();
+	// mirroring x manually this time so we don't mess with the text
+	monitor.rect(
+		monitor.width - box.x - box.width / 2,
+		box.y,
+		box.width,
+		box.height
+	);
+	monitor.noStroke();
+	monitor.fill('red');
+	monitor.push();
+	// monitor.translate(monitor.width, 0);
+	// monitor.scale(-1, 1);
+	// monitor.textAlign(RIGHT, CENTER);
+	monitor.text(
+		current + ' (' + round(score, 2) + ')',
+		monitor.width - box.bottomLeft.x,
+		box.bottomLeft.y + 20
+	);
+	monitor.pop();
+}
+
+// Sorts expressions and returns the top result
 function topExpression(unsorted) {
 	let sorted = [];
 	sorted = Object.entries(unsorted);
@@ -428,66 +264,43 @@ function topExpression(unsorted) {
 	return sorted[0][0];
 }
 
-function recordExpression(typ) {
-	history2.push(typ);
-	setCounter(par.framesToRecord - history2.length);
-	if (history2.length === par.framesToRecord) finishRecording();
+function recordExpression(data) {
+	history2.push(data);
+	updateCounter(par.recordFrames - history2.length);
+	if (history2.length >= par.recordFrames) finishRecording();
 }
 
-// Runs on expressionAggregate which is an array of shape types (softer/sharper)
+// Runs on expressionAggregate which is an array of shape types (neutral/bouba/kiki)
 function analyzeExpressionHistory(exps) {
-	let softer = 0;
-	let sharper = 0;
+	let bouba = 0;
+	let kiki = 0;
 	if (exps[0]) {
 		exps.forEach(ex => {
 			switch (ex) {
-				case 'softer':
-					softer++;
+				case 'bouba':
+					bouba++;
 					break;
-				case 'sharper':
-					sharper++;
+				case 'kiki':
+					kiki++;
 					break;
 			}
 		});
 	}
-	if (softer > sharper) {
-		return 'softer';
+	if (kiki > bouba) {
+		return 'kiki';
 	} else {
-		return 'sharper';
+		return 'bouba';
 	}
 }
 
 function checkFaceApi() {
-	if (!faceapiLoaded) {
+	if (!isFaceapiLoaded) {
 		push();
 		mirror(); // Unmirror so we can write in the right direction
 		textAlign(CENTER);
 		textSize(14);
-		text('Waiting for faceapi', width / 2, height / 2);
+		text('Loading', width / 2, height - 54);
 		pop();
-	}
-}
-
-// Takes pose history, creates an array of expanded points based on shape type
-function prepareShape(history, shapeType) {
-	let newArr = [];
-	if (shapeType === 'softer') {
-		history.forEach(p => {
-			newArr.push(softerBody(p));
-		});
-	} else {
-		history.forEach(p => {
-			newArr.push(sharperBody(p));
-		});
-	}
-	return newArr;
-}
-
-function normalizeExpression(expression) {
-	if (expression[1] > 0.01) {
-		return expression[1];
-	} else {
-		return 0.01;
 	}
 }
 
@@ -499,16 +312,71 @@ function getShapeType() {
 			switch (expression) {
 				case 'happy':
 				case 'surprised':
+					type = 'bouba';
+					break;
 				case 'neutral':
-					type = 'softer';
+					type = 'neutral';
 					break;
 				default:
-					type = 'sharper';
+					type = 'kiki';
 					break;
 			}
 		}
 	} else {
-		type = 'softer';
+		// FIXME check the transition between step 1 and 2
+		type = 'bouba';
 	}
 	return type;
+}
+
+// ----- utitlity functions to handle all the different body parts without cluttering up the main code
+
+// calls kikiExpand() with different paramaters for each body part
+function kikiFromAnchors() {
+	let newArr = [];
+	newArr = newArr.concat(anchors.nose.kikiExpand(par.kiki0));
+	newArr = newArr.concat(anchors.leftEar.kikiExpand(par.kiki1));
+	newArr = newArr.concat(anchors.rightEar.kikiExpand(par.kiki2));
+	newArr = newArr.concat(anchors.rightEar.kikiExpand(par.kiki3));
+	newArr = newArr.concat(anchors.rightEar.kikiExpand(par.kiki4));
+	newArr = newArr.concat(anchors.leftShoulder.kikiExpand(par.kiki5));
+	newArr = newArr.concat(anchors.rightShoulder.kikiExpand(par.kiki6));
+	newArr = newArr.concat(anchors.leftElbow.kikiExpand(par.kiki7));
+	newArr = newArr.concat(anchors.rightElbow.kikiExpand(par.kiki8));
+	newArr = newArr.concat(anchors.leftWrist.kikiExpand(par.kiki9));
+	newArr = newArr.concat(anchors.rightWrist.kikiExpand(par.kiki10));
+	newArr = newArr.concat(anchors.leftHip.kikiExpand(par.kiki11));
+	newArr = newArr.concat(anchors.rightHip.kikiExpand(par.kiki12));
+	newArr = newArr.concat(anchors.leftKnee.kikiExpand(par.kiki13));
+	newArr = newArr.concat(anchors.rightKnee.kikiExpand(par.kiki14));
+	newArr = newArr.concat(anchors.leftAnkle.kikiExpand(par.kiki15));
+	newArr = newArr.concat(anchors.rightAnkle.kikiExpand(par.kiki16));
+	return newArr;
+}
+
+// calls boubaExpand() with different paramaters for each body part
+function boubaFromAnchors() {
+	let newArr = [];
+	// boubaExpand()
+
+	newArr = newArr.concat(anchors.nose.boubaExpand(par.bouba0));
+	newArr = newArr.concat(anchors.leftEar.boubaExpand(par.bouba1));
+	newArr = newArr.concat(anchors.rightEar.boubaExpand(par.bouba2));
+	newArr = newArr.concat(anchors.rightEar.boubaExpand(par.bouba3));
+	newArr = newArr.concat(anchors.rightEar.boubaExpand(par.bouba4));
+	newArr = newArr.concat(anchors.leftShoulder.boubaExpand(par.bouba5));
+	newArr = newArr.concat(anchors.rightShoulder.boubaExpand(par.bouba6));
+	newArr = newArr.concat(anchors.leftElbow.boubaExpand(par.bouba7));
+	newArr = newArr.concat(anchors.rightElbow.boubaExpand(par.bouba8));
+	newArr = newArr.concat(anchors.leftWrist.boubaExpand(par.bouba9));
+	newArr = newArr.concat(anchors.rightWrist.boubaExpand(par.bouba10));
+	newArr = newArr.concat(anchors.leftHip.boubaExpand(par.bouba11));
+	newArr = newArr.concat(anchors.rightHip.boubaExpand(par.bouba12));
+	newArr = newArr.concat(anchors.leftKnee.boubaExpand(par.bouba13));
+	newArr = newArr.concat(anchors.rightKnee.boubaExpand(par.bouba14));
+	newArr = newArr.concat(anchors.leftAnkle.boubaExpand(par.bouba15));
+	newArr = newArr.concat(anchors.rightAnkle.boubaExpand(par.bouba16));
+	// console.log('expandBlob')
+	// console.log(newArr)
+	return newArr;
 }

@@ -1,160 +1,146 @@
 function scene03() {
-	// --enter
 	this.enter = function () {
-		console.log('entering scene 03')
+		dbg('scene03');
+		frameRate(par.frameRate);
+		// ----- clean-up from previous scenes
+		noseAnchor = '';
 		if (posenet) {
 			posenet.removeAllListeners();
 			poses = null;
+			isPosenetReady = false;
 		}
-		faceapiStandby = true;
-		startMic();
-		vf.hide();
+		isFaceapiStandby = true;
+		sample.size(par.webcamWidth, par.webcamHeight);
+		sample.hide();
+		stopWebcam(sample);
+		select('body').removeClass('light');
+		// -----load a prerecordeded dataset if there's nothing from step 1
+		// dancer.js should be a posenet recording of a person dancing. It
+		// also stores skeleton data so we're extracting just the poses first
+		if (history1.length === 0) {
+			recordedPose.forEach(p => {
+				if (p) history1.push(p.pose.keypoints);
+			});
+		}
 
-		finalShapeType = analyzeExpressionHistory(history2);
-
-		resetRecVariables();
+		// ----- reset state vars
 		history3 = [];
+		full = false;
+		rec = false;
+		preroll = false;
+		play = false;
 
-		chooseScene('#scene-03');
-		canvas.parent('#canvas-03');
+		// -----scene setup
+		// start the mic in a browser-friendly way
+		startMic();
+		// hide the webcam monitor
+		monitor.hide();
+		// check results of previous step
+		if (history2) {
+			finalShapeType = analyzeExpressionHistory(history2);
+		} else {
+			finalShapeType = 'bouba';
+		}
+
+		// -----page
+		sketchCanvas.parent('#canvas-03');
 		resizeCanvas(820, 820);
+		rewireUI();
 
-		recButton = select('#record-button-03');
-		recButton.html('Record');
-		recButton.removeClass('primary');
-		recButton.removeClass('rec');
-		recButton.removeClass('preroll');
-		recButton.mousePressed(() => {
-			noPreroll();
-		});
-		recButton.show();
-		counterButton = select('#counter-03');
-		counterButton.show();
-		redoButton = select('#redo-03');
-		redoButton.mousePressed(() => {
-			mgr.showScene(scene03);
-		});
-		redoButton.hide();
-		nextButton = select('#next-button-03');
-		nextButton.mousePressed(() => {
-			mgr.showScene(scene04);
-		});
-		nextButton.hide();
+		// ----- scene management
+		chooseScene('#scene-03');
 	};
 
-	// --3draw
-
+	// -----draw
 	this.draw = function () {
-		micLevel = mic.getLevel();
+		// -----prepare the frame
+		stopWebcam(sample);
+		background(colors.primary);
+		// mirror the canvas to match the mirrored video from the camera
+		translate(width, 0);
+		scale(-1, 1);
 
-		background('#f9f9f9');
+		// -----mic
+		let micLevel = 0;
+		if (mic.getLevel()) {
+			micLevel = mic.getLevel();
+			// mic reference
+			if (par.debug && !full) graphVoice(micLevel);
 
-		if (par.debug) graphVoice(micLevel);
-		mirror(); // Mirror canvas to match mirrored video
-
-		if (!full) {
-			playLiveShape3(history1, finalShapeType, micLevel);
+			// record mic level
+			if (rec && !full) recordVoice(micLevel);
 		}
-		if (full) playHistoryShape3(history3, finalShapeType);
-		if (par.frameRate) fps();
+
+		if (!full && !rec) {
+			replayShape3(history1, finalShapeType, par.defaultScale);
+		} else if (!full && rec) {
+			replayShape3(history1, finalShapeType, micLevel);
+		}
+
+		// play recorded shape
+		if (full)
+			replayShape3(history1, finalShapeType, analyzeVoiceHistory(history3));
+
+		// -----admin
+		if (par.showFrameRate || par.debug) {
+			push();
+			mirror();
+			fps();
+			pop();
+		}
 	};
 }
 
-function voiceNet(points, level) {
-	let newArr = [];
-	let phase = 0.0;
-	points.forEach((p, i) => {
-		let x, y;
-		let offset = 0;
-		if (level) {
-			if (level[0]) {
-				offset = map(level[0], 0, 255, par.levelHigh, par.levelLow);
-			}
-		}
-		x = p[0] + phase + offset * sin(i);
-		y = p[1] + phase + offset * cos(i);
-		newArr.push([x, y]);
-	});
-	phase += par.phaseMaxOffset;
-	return newArr;
+// -----shape pipeline: step 3, scale shape according to mic level
+// (1) Anchors target history points to redraw the basic shape from step 1 (2) A
+// shape type is determined from expression data (3) Expanded shapes are drawn
+// around anchors based on the shape type (4) Convex hull is calculated from all
+// points to determine outline path. Roundness is set based on shape type (5)
+// Mic level is applied to padding to scale the shape
+function makeShape3(pose, shapeType, micLevel, gif = false) {
+	Anchor.chasePose(pose);
+	// expand and get hull based on live shape type
+	let expanded = [];
+	let hullSet = [];
+	if (shapeType === 'bouba') {
+		expanded = boubaFromAnchors();
+		hullSet = hull(expanded, par.roundnessBouba);
+	} else if (shapeType === 'kiki') {
+		expanded = kikiFromAnchors();
+		// console.log(expanded)
+		hullSet = hull(expanded, par.roundnessKiki);
+	} else {
+		console.error(shapeType, ' bad shape type from drawLiveShape3');
+	}
+
+	hullSet.push(hullSet[1]);
+	hullSet.push(hullSet[0]);
+
+	// remap to canvas and apply padding
+	// this also applies the micLevel to scale the shape
+	let scale = map(micLevel, 0, 1, par.voiceMinPadding, par.voiceMaxPadding);
+	let padded = remapFromPose(hullSet, scale);
+
+	if (gif) {
+		renderGifShape(padded, shapeType);
+	} else {
+		if (!par.hideShape) renderShape2(padded, shapeType);
+	}
+	// -----reference shapes
+	if (par.showExpanded || par.debug)
+		drawRef(remapFromPose(expanded), 'paleturquoise', 5);
+	if (par.showHullset || par.debug) drawRef(remapFromPose(hullSet), 'cyan', 5);
+}
+
+function replayShape3(history, shapeType, micLevel, gif) {
+	let cp = frameCount % history.length;
+	makeShape3(history[cp], shapeType, micLevel, gif);
 }
 
 function recordVoice(history) {
 	history3.push(history);
-	setCounter(par.framesToRecord - history3.length);
-	if (history3.length === par.framesToRecord) finishRecording();
-}
-
-function playLiveShape3(history, type, level) {
-	// console.log('playLiveShape3',history,type,level)
-	if (!history[0]) {
-		history = samplePose;
-	}
-	let cp = frameCount % history.length;
-	drawLiveShape3(history[cp], type, level);
-}
-
-function drawLiveShape3(history, type, level) {
-	// console.log('drawLiveShape3', history, type, level);
-	let scale = map(level, 0, 1, par.minSoundLevel, par.maxSoundLevel);
-	retargetAnchorsFromPose(history);
-	if (type === 'softer') {
-		expanded = softerBody(anchors);
-		hullSet = hull(expanded, par.roundnessSofter);
-	} else {
-		expanded = sharperBody(anchors);
-		hullSet = hull(expanded, par.roundnessSharper);
-	}
-
-	let padded = [];
-
-	hullSet.forEach(p => {
-		padded.push([
-			remap(p[0], par.sampleWidth, width, scale),
-			remap(p[1], par.sampleHeight, height, scale),
-		]);
-	});
-
-	if (rec) recordVoice(padded);
-
-	push();
-	stroke(0);
-	strokeWeight(par.shapeStrokeWeight);
-	noFill();
-	beginShape();
-	padded.forEach(p => {
-		if (type === 'softer') {
-			curveVertex(p[0], p[1]);
-		} else {
-			vertex(p[0], p[1]);
-		}
-	});
-
-	endShape(CLOSE);
-	pop();
-}
-
-function playHistoryShape3(history, type) {
-	let cp = frameCount % history.length;
-	drawHistoryShape3(history[cp], type);
-}
-
-function drawHistoryShape3(history, type) {
-	push();
-	stroke(0);
-	strokeWeight(par.shapeStrokeWeight);
-	noFill();
-	beginShape();
-	history.forEach(p => {
-		if (type === 'softer') {
-			curveVertex(p[0], p[1]);
-		} else {
-			vertex(p[0], p[1]);
-		}
-	});
-
-	endShape(CLOSE);
-	pop();
+	updateCounter(par.recordFrames - history3.length);
+	if (history3.length >= par.recordFrames) finishRecording();
 }
 
 function graphVoice(rms) {
@@ -168,4 +154,10 @@ function graphVoice(rms) {
 	ellipse(width / 2, height - 100, 10 + rms * 200);
 	text(floor(rms * 200), width / 2, height - 150);
 	pop();
+}
+
+function analyzeVoiceHistory(levels) {
+	let sum = levels.reduce((a, b) => a + b, 0);
+	let average = sum / levels.length;
+	return average;
 }

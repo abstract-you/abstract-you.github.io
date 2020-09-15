@@ -1,37 +1,55 @@
-<!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8" />
-		<title>ABSTRACT YOU</title>
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1, shrink-to-fit=no"
-		/>
 
-		<script type="text/javascript" src="lib/dat.gui.js"></script>
-		<script type="text/javascript" src="lib/p5.min.js"></script>
-		<script type="text/javascript" src="lib/p5.sound.min.js"></script>
-		<script type="text/javascript" src="lib/scenemanager.js"></script>
-		<script type="text/javascript" src="lib/hull.js"></script>
-		<script type="text/javascript" src="lib/ml5-expressions.min.js"></script>
+<head>
+	<meta charset="UTF-8" />
+	<title>ABSTRACT YOU</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-		<script defer src="app/config.gui.js" type="text/javascript"></script>
-		<script defer src="app/Anchor.class.js" type="text/javascript"></script>
-		<script defer src="app/sketch.js" type="text/javascript"></script>
-		<script defer src="app/scene1.js" type="text/javascript"></script>
-		<script defer src="app/scene2.js" type="text/javascript"></script>
-		<script defer src="app/scene3.js" type="text/javascript"></script>
-		<script defer src="app/scene4.js" type="text/javascript"></script>
-		<script defer src="app/samplePose.js" type="text/javascript"></script>
-		<!-- <script defer src="app/app.js" type="text/javascript"></script> -->
+	<script type="text/javascript" src="lib/dat.gui.js"></script>
+	<script type="text/javascript" src="lib/p5.min.js"></script>
+	<script type="text/javascript" src="lib/p5.sound.min.js"></script>
+	<script type="text/javascript" src="lib/scenemanager.js"></script>
+	<script type="text/javascript" src="lib/hull.js"></script>
+	<script type="text/javascript" src="lib/osnoise.js"></script>
+	<script type="text/javascript" src="lib/ml5-expressions.min.js"></script>
+	<script type="text/javascript" src="lib/CCapture.all.min.js"></script>
+	<script type="text/javascript" src="lib/store2.min.js"></script>
 
-		<link rel="stylesheet" href="app/style.css" />
-	</head>
+	<script defer src="app/config.gui.js" type="text/javascript"></script>
+	<script defer src="app/Anchor.class.js" type="text/javascript"></script>
+	<script defer src="app/sketch.js" type="text/javascript"></script>
+	<script defer src="app/scene0.js" type="text/javascript"></script>
+	<script defer src="app/scene1.js" type="text/javascript"></script>
+	<script defer src="app/scene2.js" type="text/javascript"></script>
+	<script defer src="app/scene3.js" type="text/javascript"></script>
+	<script defer src="app/scene4.js" type="text/javascript"></script>
+	<script defer src="app/dancer.min.js" type="text/javascript"></script>
+	<!-- <script defer src="app/app.js" type="text/javascript"></script> -->
 
-	<body>
-		<main class="container">
-			<div id="scene-00" class="fullscreen hidden">
+	<link rel="stylesheet" href="app/style.css" />
+</head>
+
+<body>
+	<main class="container">
+
+		<div id="preloading-scene" class="fullscreen">
+			<section class="canvas-container">
+				<div id="canvas-preloading"></div>
+			</section>
+		</div>
+
+		<div id="scene-00" class="intro-scene fullscreen hidden">
+			<div class="nav-header">
+				<section>Abstract You</section>
+				<section>
+					<a href="about.html">
+						About
+					</a>
+				</section>
+			</div>
+
+			<div class="scene-container">
 				<div class="sidebar">
 					<section class="pretitle">
 						<p>This is <strong>You</strong>.</p>
@@ -51,152 +69,153 @@
 						<div id="canvas-00"></div>
 					</section>
 				</div>
+			</div>
 
+			<div class="scene-footer controls">
+				<button id="begin-button">Press here to begin</button>
+			</div>
+		</div><!-- scene-00 -->
+
+		<div id="scene-01" class="hidden scene fullscreen">
+			<div class="sidebar">
+				<section class="title">
+					<p class="row site-title"><a href="/">Abstract you</a></p>
+					<p class="row scene-title">1: Body Movement</p>
+				</section>
+
+				<section class="directions">
+					<p class="col">
+						This shape represents you. Press record, then
+						<strong>start moving and bring some life into it</strong>.
+					</p>
+				</section>
+				<section class="webcam-monitor-container">
+					<div id="webcam-monitor-01"></div>
+				</section>
 				<div class="controls">
-					<button id="begin-button">Press here to begin</button>
+					<button class="rec-button" id="record-button-01">Record</button>
+					<button class="rec-button primary" id="next-button-01">Next</button>
+					<button class="counter disabled" id="counter-01">000</button>
+					<button class="redo-button counter" id="redo-01">Redo</button>
 				</div>
 			</div>
 
-			<div id="scene-01" class="hidden scene fullscreen">
-				<div class="sidebar">
-					<section class="title">
-						<p class="row site-title"><a href="/">Abstract you</a></p>
-
-						<p class="row scene-title">1: Body Movement</p>
-					</section>
-
-					<section class="directions">
-						<p class="col">
-							This shape represents you. Press record, then 
-							<strong>start moving and bring some life into it</strong>.
-						</p>
-					</section>
-					<section class="webcam-monitor-container">
-						<div id="webcam-monitor-01"></div>
-					</section>
-					<div class="controls">
-						<button class="rec-button" id="record-button-01">Record</button>
-						<button class="rec-button primary" id="next-button-01">Next</button>
-						<button class="counter disabled" id="counter-01">000</button>
-						<button class="redo-button counter" id="redo-01">Redo</button>
-					</div>
-				</div>
-
-				<div class="abstract">
-					<section class="canvas-container">
-						<div id="canvas-01"></div>
-					</section>
-				</div>
+			<div class="abstract">
+				<section class="canvas-container">
+					<div id="canvas-01"></div>
+				</section>
 			</div>
+		</div> <!-- scene-01 -->
 
-			<div id="scene-02" class="scene hidden fullscreen">
-				<div class="sidebar">
-					<section class="title">
-						<p class="row site-title"><a href="/">Abstract you</a></p>
-						<p class="row">2: Facial Expressions</p>
-					</section>
+		<div id="scene-02" class="scene hidden fullscreen">
+			<div class="sidebar">
+				<section class="title">
+					<p class="row site-title"><a href="/">Abstract you</a></p>
+					<p class="row">2: Facial Expressions</p>
+				</section>
 
-					<section class="directions">
-						<p class="col">
-							For this step,
+				<section class="directions">
+					<p class="col">
+						For this step,
 						<strong>make sure your face is in front of the camera</strong>,
 						then press record.
-						</p>
-					</section>
-					<section class="webcam-monitor-container">
-						<div id="webcam-monitor-02"></div>
-					</section>
-					<div class="controls">
-						<button class="rec-button" id="record-button-02">Record</button>
-						<button class="rec-button primary" id="next-button-02">Next</button>
-						<button class="counter disabled" id="counter-02">000</button>
-						<button class="redo-button counter" id="redo-02">Redo</button>
-					</div>
-				</div>
-
-				<div class="abstract">
-					<section class="canvas-container">
-						<div id="canvas-02"></div>
-					</section>
+					</p>
+				</section>
+				<section class="webcam-monitor-container">
+					<div id="webcam-monitor-02"></div>
+				</section>
+				<div class="controls">
+					<button class="rec-button" id="record-button-02">Record</button>
+					<button class="rec-button primary" id="next-button-02">Next</button>
+					<button class="counter disabled" id="counter-02">000</button>
+					<button class="redo-button counter" id="redo-02">Redo</button>
 				</div>
 			</div>
 
-			<div id="scene-03" class="scene hidden fullscreen">
-				<div class="sidebar">
-					<section class="title">
-						<p class="row site-title"><a href="/">Abstract you</a></p>
-						<p class="row">3: Voice</p>
-					</section>
+			<div class="abstract">
+				<section class="canvas-container">
+					<div id="canvas-02"></div>
+				</section>
+			</div>
+		</div> <!-- scene-02 -->
 
-					<section class="directions">
-						<p class="col">
-							Lastly,
-							press record and <strong>read the following text</strong>. Press
-							stop when you're done.
-						</p>
-					</section>
-					<section class="webcam-monitor-container">
-						<div id="webcam-monitor-03"></div>
-						<p>
-							Abstraction in its main sense is a conceptual process where general rules and concepts are derived from the usage and classification of specific examples, literal signifiers, first principles, or other methods.
-						</p>
-						<p>
-							"An abstraction" is the outcome of this process &emdash; a concept that acts as a common noun for all subordinate concepts, and connects any related concepts as a group, field, or category.
-						</p>
-					</section>
-					<div class="controls">
-						<button class="rec-button" id="record-button-03">Record</button>
-						<button class="rec-button primary" id="next-button-03">Next</button>
-						<button class="counter disabled" id="counter-03">000</button>
-						<button class="redo-button counter" id="redo-03">Redo</button>
-					</div>
-				</div>
+		<div id="scene-03" class="scene hidden fullscreen">
+			<div class="sidebar">
+				<section class="title">
+					<p class="row site-title"><a href="/">Abstract you</a></p>
+					<p class="row">3: Voice</p>
+				</section>
 
-				<div class="abstract">
-					<section class="canvas-container">
-						<div id="canvas-03"></div>
-					</section>
+				<section class="directions">
+					<p class="col">
+						Lastly,
+						press record and <strong>read the following text</strong>. Press
+						stop when you're done.
+					</p>
+				</section>
+				<section class="prompter webcam-monitor-container">
+					<div id="webcam-monitor-03"></div>
+					<p>
+						Abstraction in its main sense is a conceptual process where general rules and concepts are derived from the
+						usage and classification of specific examples, literal signifiers, first principles, or other methods. </p>
+					<p>"An abstraction" is the outcome of this process—a concept that acts as a common noun for all subordinate
+						concepts, and connects any related concepts as a group, field, or category.</p>
+				</section>
+				<div class="controls">
+					<button class="rec-button" id="record-button-03">Record</button>
+					<button class="rec-button primary" id="next-button-03">Next</button>
+					<button class="counter disabled" id="counter-03">000</button>
+					<button class="redo-button counter" id="redo-03">Redo</button>
 				</div>
 			</div>
 
-			<div id="scene-04" class="scene hidden fullscreen">
-				<div class="sidebar">
-					<section class="title">
-						<p class="row site-title"></p>
-						<p class="row"></p>
-					</section>
+			<div class="abstract">
+				<section class="canvas-container">
+					<div id="canvas-03"></div>
+				</section>
+			</div>
+		</div> <!-- scene-03 -->
 
-					<section class="directions">
-						<p class="col">This is the <strong>Abstract You</strong>.</p>
-						<p class="col">
-							It is based on your physical characteristics and there's no other
-							one like it.
-						</p>
-						<p class="col">
-							It is not you. It is a digital manifestation of what makes you
-							<strong>you</strong>.
-						</p>
-					</section>
-					<section class="webcam-monitor-container">
-						<div id="webcam-monitor-04"></div>
-					</section>
-					<div class="controls">
-						<button class="primary" id="save-button">
-							Download the abstract you
-						</button>
-						<button class="secondary" id="restart-button">
-							Create anohter abstract you
-						</button>
-					</div>
-				</div>
+		<div id="scene-04" class="scene hidden fullscreen">
+			<div class="sidebar">
+				<section class="title">
+					<p class="row site-title"></p>
+					<p class="row"></p>
+				</section>
 
-				<div class="abstract">
-					<section class="canvas-container">
-						<div id="canvas-04"></div>
-					</section>
+				<section class="directions">
+					<p class="col">This is the <strong>Abstract You</strong>.</p>
+					<p class="col">
+						It is based on your physical characteristics and there's no other
+						one like it.
+					</p>
+					<p class="col">
+						It is not you. It is a digital manifestation of what makes you
+						<strong>you</strong>.
+					</p>
+				</section>
+				<section class="webcam-monitor-container">
+					<div id="webcam-monitor-04"></div>
+				</section>
+				<div class="controls">
+					<button class="primary" id="save-button">
+						Download the abstract you
+					</button>
+					<button class="secondary" id="restart-button">
+						Create anohter abstract you
+					</button>
 				</div>
 			</div>
-		</main>
-		<div id="dat-gui-container"></div>
-	</body>
+
+			<div class="abstract">
+				<section class="canvas-container">
+					<div id="canvas-04"></div>
+				</section>
+			</div>
+		</div> <!-- scene04  -->
+
+	</main>
+	<div id="dat-gui-container"></div>
+</body>
+
 </html>

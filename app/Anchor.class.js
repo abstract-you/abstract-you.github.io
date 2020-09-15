@@ -1,13 +1,26 @@
 class Anchor {
-	constructor(x, y, p) {
+	constructor(x, y, part) {
 		this.position = createVector(x, y);
 		this.target = createVector(x, y);
 		this.vel = p5.Vector.random2D();
 		this.acc = createVector();
-		this.r = 10;
+		this.referenceShapeRadius = 12;
+		this.part = part;
+		this.zoff = 0.0;
+		this.starPhase = 0.0;
+		this.boubaPhase = 0.0;
+		this.starXOff = 0.0;
+		this.starYOff = 0.0;
+		this.ellipseXOff = 0.0;
+		this.ellipseYOff = 0.0;
+		this.seed = random(1000);
+		this.rotation = random([1, 0]);
+		// this.blobSeed = random(1000);
+		// this.starSeed1 = random(1000);
+		// this.starSeed2 = random(1000);
 		this.topSpeed = par.topSpeed;
-		this.maxForce = par.maxAcc;
-		this.part = p;
+		this.maxAcc = par.maxAcc;
+		this.score = 1;
 	}
 
 	update() {
@@ -17,12 +30,16 @@ class Anchor {
 	}
 
 	show() {
-		push()
+		// Probably a very bad idea...
+		let webcamWidth = sample.width ? sample.width : 640;
+		let webcamHeight = sample.height ? sample.height : 480;
+		let x = remap(this.position.x, webcamWidth, width, par.padding);
+		let y = remap(this.position.y, webcamHeight, height, par.padding);
+		push();
 		noStroke();
-		fill('mistyrose');
-		ellipse(this.position.x, this.position.y, this.r);
-		// text(this.part,this.position.x,this.position.y)
-		pop()
+		fill('pink');
+		ellipse(x, y, par.referenceAnchorRadius);
+		pop();
 	}
 
 	addVertex() {
@@ -30,35 +47,39 @@ class Anchor {
 	}
 
 	setTarget(v) {
-		this.target = v
+		this.target = v;
 	}
 
-	// Runs behaviors
+	setScore(s) {
+		// if (!this.part === 'nose') {
+		this.score = s;
+		// }
+	}
+
 	behaviors() {
 		let goto = this.arrive(this.target);
 		this.applyForce(goto);
 	}
 
-	// Applies forces returned by the bejavior functions
 	applyForce(f) {
 		this.acc.add(f);
 	}
 
 	seek(target) {
 		let desired = p5.Vector.sub(target, this.position);
-		desired.setMag(this.topSpeed);
+		desired.setMag(par.topSpeed);
 		let steer = p5.Vector.sub(desired, this.vel);
-		return steer.limit(this.maxForce);
+		return steer.limit(par.maxAcc);
 	}
 
 	flee(target) {
 		let desired = p5.Vector.sub(target, this.position);
 		if (desired.mag() < 90) {
-			desired.setMag(this.topSpeed);
+			desired.setMag(par.topSpeed);
 			// Reverse direction
 			desired.mult(-1);
 			let steer = p5.Vector.sub(desired, this.vel);
-			steer.limit(this.maxForce);
+			steer.limit(par.maxAcc);
 			return steer;
 		} else {
 			return createVector(0, 0);
@@ -68,128 +89,156 @@ class Anchor {
 	arrive(target) {
 		let desired = p5.Vector.sub(target, this.position);
 		let distance = desired.mag();
-		let speed = this.topSpeed;
+		let speed = par.topSpeed;
 		if (distance < 100) {
-			speed = map(distance, 0, 100, 0, this.topSpeed);
+			speed = map(distance, 0, 100, 0, par.topSpeed);
 		}
 		desired.setMag(speed);
 		let steer = p5.Vector.sub(desired, this.vel);
-		return steer.limit(this.maxForce);
+		return steer.limit(par.maxAcc);
 	}
 
-	/**
-	 * Gets an array of keypoints from PoseNet
-	 * Creates an array of p5 vectors
-	 */
-	static makeVectorArray(arr) {
+	neutralExpand(modifier = 1) {
+		if (modifier === 0 || this.score < par.minScore) {
+			return [];
+		}
+		let px = this.position.x;
+		let py = this.position.y;
+		let x, y;
 		let newArr = [];
-		for (const p of arr) {
-			let x = p.position.x;
-			let y = p.position.y;
-			let newP = createVector(p.position.x, p.position.y);
-			newP.part = p.part;
-			newArr.push(newP);
+		for (let a = 0; a < 360; a += par.ellipseIncrement) {
+			noiseSeed(this.seed);
+			let r =
+				map(
+					noise(this.ellipseXOff, this.ellipseYOff),
+					0,
+					1,
+					par.ellipseMinRadius,
+					par.ellipseMaxRadius
+				) * modifier;
+			x = px + r * cos(a);
+			y = py + r * sin(a);
+			newArr.push([x, y]);
+			this.ellipseXOff += par.ellipseOffsetIncrement;
+			this.ellipseYOff += par.ellipseOffsetIncrement;
 		}
 		return newArr;
 	}
 
-	static expandPoints(arr, r) {
+	boubaExpand(modifier = 1) {
+		if (modifier === 0 || this.score < par.minScore) {
+			return [];
+		}
+		noiseSeed(this.seed);
+		modifier = modifier * par.modifierBouba;
+		let px = this.position.x;
+		let py = this.position.y;
+		let x, y;
 		let newArr = [];
-		arr.forEach(p => {
-			let px = p.x;
-			let py = p.y;
-			for (let angle = 0; angle < 360; angle += 37) {
-				let x = px + r * sin(angle);
-				let y = py + r * cos(angle);
-				let newP = createVector(x, y);
-				newP.px = px;
-				newP.py = py;
-				newArr.push(newP);
-			}
-		});
+		let localPhase = this.boubaPhase;
+
+		if (this.rotation) {
+			localPhase = -localPhase;
+		}
+
+		angleMode(DEGREES);
+		for (let a = 0; a < 360; a += par.angleIncBouba) {
+			let xoff = map(cos(a), -1, 1, 0, par.maxXNoiseBouba);
+			let yoff = map(sin(a), -1, 1, 0, par.maxYNoiseBouba);
+
+			let n = noise(xoff, yoff, this.zoff);
+			// let n = osnoise.noise3D(xoff, yoff, this.zoff);
+
+			let r = map(n, 0, 1, par.minRadiusBouba, par.maxRadiusBouba) * modifier;
+			x = px + r * cos(a + localPhase);
+			y = py + r * sin(a + localPhase);
+
+			newArr.push([x, y]);
+		}
+		this.boubaPhase += par.phaseShiftBouba;
+		this.zoff += par.zOffBouba;
 		return newArr;
 	}
 
-	static expandHeadPoints(arr, r) {
+	kikiExpand(modifier = 1) {
+		if (modifier === 0 || this.score < par.minScore) {
+			return [];
+		}
+		noiseSeed(this.seed);
+		modifier = modifier * par.modifierKiki;
+		let x = this.position.x;
+		let y = this.position.y;
 		let newArr = [];
-		arr.forEach(p => {
-			if (p.part === 'nose' || p.part === 'leftEye' || p.part === 'rightEye') {
-				let px = p.x;
-				let py = p.y;
-				for (let angle = 0; angle < 360; angle += 37) {
-					let x = px + r * sin(angle);
-					let y = py + r * cos(angle);
-					let newP = createVector(x, y);
-					newP.px = px;
-					newP.py = py;
-					newArr.push(newP);
-				}
+
+		let radius1 = par.starInternalRadius * modifier;
+		let radius2 = par.starExternalRadius * modifier;
+		let npoints = par.starPoints;
+		// return [];
+
+		push();
+		angleMode(RADIANS);
+		let angle = TWO_PI / npoints;
+		let halfAngle = angle / 2.0;
+		for (let a = 0; a < TWO_PI; a += angle) {
+			let sx =
+				map(
+					noise(this.starXOff, this.starYOff),
+					-1,
+					1,
+					-par.noiseRangeKiki,
+					par.noiseRangeKiki
+				) +
+				x +
+				cos(a) * radius2;
+			this.starXOff += par.xNoiseStepKiki;
+			this.starYOff += par.yNoiseStepKiki;
+			let sy =
+				map(
+					noise(this.starXOff, this.starYOff),
+					-1,
+					1,
+					-par.noiseRangeKiki,
+					par.noiseRangeKiki
+				) +
+				y +
+				sin(a) * radius2;
+			this.starXOff += par.xNoiseStepKiki;
+			this.starYOff += par.yNoiseStepKiki;
+			newArr.push([sx, sy]);
+			sx = x + cos(a + halfAngle + this.starPhase) * radius1;
+			sy = y + sin(a + halfAngle + this.starPhase) * radius1;
+			newArr.push([sx, sy]);
+		}
+		pop();
+		this.starPhase += par.phaseShiftKiki;
+
+		return newArr;
+	}
+
+	static chasePose(targets) {
+		Object.keys(anchors).forEach((partName, i) => {
+			let anchor = anchors[partName];
+			if (targets[i]) {
+				anchor.setTarget(
+					createVector(targets[i].position.x, targets[i].position.y)
+				);
 			} else {
-				let newP = createVector(p.x, p.y);
-				newP.px = p.x;
-				newP.py = p.y;
-				newP.part = p.part;
-				newArr.push(newP);
+				anchor.setTarget(
+					createVector(targets[0].position.x, targets[0].position.y)
+				);
 			}
+			anchor.setScore(targets[i].score);
+			anchor.behaviors();
+			anchor.update();
+			if (par.showAnchors || par.debug) anchor.show();
 		});
-		return newArr;
 	}
-	/**
-	 * Get an array of points.
-	 * Return points to draw a convex hull around them.
-	 */
-	static convexHull(points) {
-		function removeMiddle(a, b, c) {
-			var cross = (a.x - b.x) * (c.y - b.y) - (a.y - b.y) * (c.x - b.x);
-			var dot = (a.x - b.x) * (c.x - b.x) + (a.y - b.y) * (c.y - b.y);
-			return cross < 0 || (cross == 0 && dot <= 0);
-		}
-		points.sort(function (a, b) {
-			return a.x != b.x ? a.x - b.x : a.y - b.y;
+	static refreshAnchors() {
+		Object.keys(anchors).forEach((partName, i) => {
+			let anchor = anchors[partName];
+			anchor.behaviors();
+			anchor.update();
+			if (par.showAnchors) anchor.show();
 		});
-
-		var n = points.length;
-		var hull = [];
-
-		for (var i = 0; i < 2 * n; i++) {
-			var j = i < n ? i : 2 * n - 1 - i;
-			while (
-				hull.length >= 2 &&
-				removeMiddle(hull[hull.length - 2], hull[hull.length - 1], points[j])
-			)
-				hull.pop();
-			hull.push(points[j]);
-		}
-
-		hull.pop();
-		return hull;
 	}
 }
-
-/**
- * License for convexhull-js
- *
-
-The MIT License (MIT)
-
-Copyright (c) 2015 Andrey Naumenko
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
