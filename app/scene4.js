@@ -85,10 +85,10 @@ function scene04() {
 			capturer.stop();
 			capturer.save();
 			//TODO: stop CCapture and resume animation
-			store('downloadedShape', true);
-			store('history1', history1);
-			store('history2', history2);
-			store('history3', history3);
+			// store('downloadedShape', true);
+			// store('history1', history1);
+			// store('history2', history2);
+			// store('history3', history3);
 			// refreshPage();
 		}
 
