@@ -85,7 +85,7 @@ function scene04() {
 		}
 
 		// -----admin
-		if (par.frameRate || par.debug) {
+		if (par.showFrameRate || par.debug) {
 			push();
 			mirror();
 			fps();

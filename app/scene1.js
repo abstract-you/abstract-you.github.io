@@ -95,7 +95,7 @@ function scene01() {
 
 		// -----admin
 		// shows framerate in the corner of the canvas for debugging purposes
-		if (par.frameRate || par.debug) fps();
+		if (par.showFrameRate || par.debug) fps();
 	};
 }
 
@@ -205,7 +205,6 @@ function noPreroll() {
 // shows a 3...2..1... animation on the second canvas
 // crude animation timing based on modulo of the frameCounter, but seems to work well enough
 function playPreroll() {
-	console.log('playPreroll');
 	let counter = floor(map(prerollCounter, 0, par.preRecCounterFrames, 3.9, 0));
 	if (counter > 0) {
 		monitor.push();

@@ -47,13 +47,12 @@ function scene00() {
 				noseAnchor.update();
 				if (par.showAnchors || par.debug) noseAnchor.show();
 
-				// Keeps shape from reaching the corners
 				let nx = noseAnchor.position.x;
 				let ny = noseAnchor.position.y;
 				let pad = par.padding / 2;
-
 				let webcamWidth = sample.width ? sample.width : 640;
 				let webcamHeight = sample.height ? sample.height : 480;
+				// Keeps shape from reaching the corners
 				let cx = remap(nx, webcamWidth, width, pad);
 				let cy = remap(ny, webcamHeight, height, pad);
 
@@ -91,13 +90,13 @@ function scene00() {
 			// ellipse(width / 2, height / 2, r);
 			fill('#595959');
 			textAlign(CENTER, CENTER);
-			text('Loading', width / 2, height - 34);
+			text('Loading', width / 2, height / 2);
 			monitor.background(colors.dark);
 			// monitor.fill('#393939');
 			// monitor.ellipse(width / 2, height / 2, l);
 			monitor.fill('#595959');
 			monitor.textAlign(CENTER, CENTER);
-			monitor.text('Loading', width / 2, height - 34);
+			monitor.text('Loading', width / 2, height / 2);
 		}
 		if (par.showFrameRate || par.debug) {
 			// mirror();

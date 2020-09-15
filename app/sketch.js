@@ -385,8 +385,8 @@ function remapFromPose(pointArr, padding = par.padding) {
 	// console.log('remapFromPose');
 	// console.log(padding);
 	// console.log(pointArr);
-	// If there's no pose, we just return an empty array to draw nothing. This
-	// seems like the simplest way to integrate the confidence score
+	// If there's no pose, we just return an empty array to draw nothing (this
+	// seemed like the simplest way to integrate a confidence score)
 	if (!pointArr[0]) return [];
 	let webcamWidth = sample.width ? sample.width : 640;
 	let webcamHeight = sample.height ? sample.height : 480;
