@@ -42,6 +42,7 @@ function scene04() {
 		background(colors.primary);
 
 		gifc = createGraphics(400, 400);
+		gifc.background(colors.primary);
 		gifc.id('gif-canvas');
 		gifc.hide();
 
@@ -88,7 +89,7 @@ function scene04() {
 			store('history1', history1);
 			store('history2', history2);
 			store('history3', history3);
-			refreshPage();
+			// refreshPage();
 		}
 
 		// -----admin
@@ -115,7 +116,7 @@ function startGifRecording() {
 
 // Gets called by replayShape3 when recording a gif
 // Renders gif to a smaller canvas
-// No fancy mapping, just halve every value
+// No fancy mapping, just halves every value
 function renderGifShape(shape, shapeType) {
 	gifc.background(colors.primary);
 	gifc.push();
