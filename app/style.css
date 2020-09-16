@@ -360,7 +360,7 @@ button.primary:hover {
 	border-color: var(--dark);
 }
 
-#restart-button {
+#scene-04 .secondary {
 	background-color: var(--primary);
 	border-color: var(--primary);
 	color: var(--dark);

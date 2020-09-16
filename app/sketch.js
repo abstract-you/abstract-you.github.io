@@ -6,6 +6,8 @@ let capturer = new CCapture({
 let gifFrames = 0;
 let gifc;
 
+let downloadStarted = false;
+
 // scene manager
 let mgr;
 

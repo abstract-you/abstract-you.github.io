@@ -48,9 +48,11 @@ function scene04() {
 
 		// -----ui
 		recButton = select('#save-button');
+		recButton.addClass('primary');
+		recButton.removeClass('secondary');
 		recButton.mousePressed(startGifRecording);
 		restartButton = select('#restart-button');
-		restartButton.mousePressed(refreshPage);
+		restartButton.mousePressed(redoAbstract);
 
 		// -----scene management
 		chooseScene('#scene-04');
@@ -83,13 +85,11 @@ function scene04() {
 
 		if (gifFrames >= par.gifFrames) {
 			capturer.stop();
+			store('downloadedShape', true);
+			store('history1', history1);
+			store('history2', history2);
+			store('history3', history3);
 			capturer.save();
-			//TODO: stop CCapture and resume animation
-			// store('downloadedShape', true);
-			// store('history1', history1);
-			// store('history2', history2);
-			// store('history3', history3);
-			// refreshPage();
 		}
 
 		// -----admin
@@ -106,9 +106,25 @@ function refreshPage() {
 	location.replace('/');
 }
 
+function redoAbstract() {
+	store('downloadedShape', false);
+	refreshPage();
+}
+
+function showResumeAfterDownload() {
+	console.log('download started');
+	downloadStarted = true;
+	let resumeButton = createButton('Resume Playback');
+	resumeButton.position(955, 414);
+	resumeButton.elt.addEventListener('click', refreshPage);
+	resumeButton.mousePressed('refreshPage');
+}
+
 function startGifRecording() {
 	rec = true;
 	gifFrames++;
+	recButton.removeClass('primary');
+	recButton.addClass('secondary');
 	// -----gif recorder
 	capturer.start();
 	capturer.capture(document.getElementById('gif-canvas'));
