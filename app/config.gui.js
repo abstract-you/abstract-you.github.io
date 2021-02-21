@@ -1,16 +1,36 @@
 class Paramaterize {
 	constructor() {
-		this.scene = '1';
+		this.scene = '0';
 		this.debug = false;
+
+		this.dx = 320;
+		this.dy = 0;
+		this.dwidth = 500;
+		this.dheight = 500;
+		this.sx = 80;
+		this.sy = 0;
+		this.swidth = 480;
+		this.sheight = 480;
+		this.webcamWidth = 627;
+		this.webcamHeight = 470;
+
+		// dx Number: the x-coordinate of the destination rectangle in which to draw the source image
+		// dy Number: the y-coordinate of the destination rectangle in which to draw the source image
+		// dWidth Number: the width of the destination rectangle
+		// dHeight Number: the height of the destination rectangle
+		// sx Number: the x-coordinate of the subsection of the source image to draw into the destination rectangle
+		// sy Number: the y-coordinate of the subsection of the source image to draw into the destination rectangle
+		// sWidth Number: the width of the subsection of the source image to draw into the destination rectangle (Optional)
+		// sHeight Number: the height of the subsection of the source image to draw into the destination rectangle (Optional)
 
 		// ----- general
 		this.frameRate = 60;
 		this.recordFrames = 900; // 900 frames is about 15 seconds
-		this.preRecCounterFrames = 24; // 240 frames is about 4 seconds
+		this.preRecCounterFrames = 210; // 240 frames is about 4 seconds
 		this.videoSync = 0;
 		this.shapeStrokeWeight = 3.5;
 		this.padding = 200;
-		this.gifFrames = 10;
+		this.gifFrames = 100;
 		this.topSpeed = 20;
 		this.maxAcc = 10;
 		this.minScore = 0;
@@ -32,7 +52,16 @@ class Paramaterize {
 		this.ellipseMinRadius = 65;
 		this.ellipseMaxRadius = 65;
 		this.ellipseOffsetIncrement = 0.01;
-		this.neutral0 = 2.5;
+		this.ellipseMinRadius = 50;
+		this.ellipseMaxRadius = 50;
+		this.ellipseIncrement = 60;
+		this.roundnessNeutral = 200;
+
+		// -----02
+		this.showExpressionGraph = false;
+		this.alwaysKiki = false;
+
+		this.neutral0 = 2;
 		this.neutral1 = 0;
 		this.neutral2 = 0;
 		this.neutral3 = 1;
@@ -54,14 +83,14 @@ class Paramaterize {
 		this.modifierBouba = 1;
 		this.roundnessBouba = 250;
 		this.angleIncBouba = 20;
-		this.minRadiusBouba = 5;
-		this.maxRadiusBouba = 95;
-		this.maxXNoiseBouba = 10;
-		this.maxYNoiseBouba = 10;
-		this.phaseShiftBouba = 0.2;
-		this.zOffBouba = 0.007;
-		this.bouba0steps = 10;
-		this.bouba0 = 2.2;
+		this.minRadiusBouba = 70;
+		this.maxRadiusBouba = 120;
+		this.maxXNoiseBouba = 4;
+		this.maxYNoiseBouba = 3;
+		this.phaseShiftBouba = 0.01;
+		this.zOffBouba = 0.05;
+		this.bouba0 = 2;
+		this.bouba0steps = 8;
 		this.bouba1 = 0;
 		this.bouba2 = 0;
 		this.bouba3 = 1;
@@ -166,7 +195,7 @@ class Paramaterize {
 let par = new Paramaterize();
 let gui = new dat.GUI({
 	autoPlace: true,
-	width: 350,
+	width: 400,
 	preset: 'Preset1',
 });
 gui.remember(par);
