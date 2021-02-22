@@ -360,15 +360,14 @@ button.primary:hover {
 	border-color: var(--dark);
 }
 
-#scene-04 .secondary {
-	background-color: var(--primary);
+/* #restart-button { background-color: var(--primary);
 	border-color: var(--primary);
 	color: var(--dark);
 }
 
 #restart-button:hover {
 	border-color: var(--dark);
-}
+} */
 /* ===utilities */
 
 .hidden {
@@ -385,4 +384,8 @@ strong {
 
 .uppercase {
 	text-transform: uppercase;
+}
+
+#save-button {
+	display: none;
 }
